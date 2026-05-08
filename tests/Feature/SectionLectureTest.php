@@ -5,6 +5,8 @@ use App\Models\Lecture;
 use App\Models\Section;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -147,5 +149,25 @@ describe('lectures', function () {
         $this->actingAs($instructor, 'sanctum')
             ->deleteJson("/api/v1/sections/{$sectionB->id}/lectures/{$lecture->id}")
             ->assertNotFound();
+    });
+
+    it('instructor can upload lecture video', function () {
+        Storage::fake('public');
+
+        $instructor = User::factory()->instructor()->create();
+        $section = Section::factory()
+            ->for(Course::factory()->create(['user_id' => $instructor->id]))
+            ->create();
+        $lecture = Lecture::factory()->create(['section_id' => $section->id]);
+
+        $this->actingAs($instructor, 'sanctum')
+            ->postJson("/api/v1/lectures/{$lecture->id}/video", [
+                'video' => UploadedFile::fake()->create('lesson.mp4', 1024, 'video/mp4'),
+                'video_duration' => 321,
+            ])
+            ->assertOk();
+
+        expect($lecture->fresh()->video_path)->not->toBeNull()
+            ->and($lecture->fresh()->video_duration)->toBe(321);
     });
 });
