@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
-import { useSkillbroApi } from '@/composables/useSkillbroApi';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useSkillbroApi } from '@/composables/useSkillbroApi';
 import type {
     SkillbroCategory,
     SkillbroCourse,
@@ -297,6 +297,7 @@ async function resendVerificationEmail(): Promise<void> {
 async function verifyEmail(): Promise<void> {
     if (!verifyForm.user_id || !verifyForm.hash) {
         setStatus('user_id and hash are required.');
+
         return;
     }
 
@@ -341,6 +342,7 @@ async function onAvatarSelected(event: Event): Promise<void> {
 async function loadInstructorProfile(): Promise<void> {
     if (!instructorForm.user_id) {
         setStatus('user_id is required.');
+
         return;
     }
 
@@ -358,6 +360,7 @@ async function loadCategories(): Promise<void> {
 async function createCategory(): Promise<void> {
     if (!categoryForm.name) {
         setStatus('Category name is required.');
+
         return;
     }
 
@@ -374,6 +377,7 @@ async function createCategory(): Promise<void> {
 async function updateCategory(): Promise<void> {
     if (!categoryForm.category_id) {
         setStatus('category_id is required.');
+
         return;
     }
 
@@ -388,6 +392,7 @@ async function updateCategory(): Promise<void> {
 async function deleteCategory(): Promise<void> {
     if (!categoryForm.category_id) {
         setStatus('category_id is required.');
+
         return;
     }
 
@@ -406,6 +411,7 @@ async function loadTags(): Promise<void> {
 async function createTag(): Promise<void> {
     if (!tagForm.name) {
         setStatus('Tag name is required.');
+
         return;
     }
 
@@ -418,6 +424,7 @@ async function createTag(): Promise<void> {
 async function deleteTag(): Promise<void> {
     if (!tagForm.tag_id) {
         setStatus('tag_id is required.');
+
         return;
     }
 
@@ -458,6 +465,7 @@ function buildCoursePayload(): Record<string, unknown> {
 async function createCourse(): Promise<void> {
     if (!courseForm.title || !courseForm.description) {
         setStatus('title and description are required.');
+
         return;
     }
 
@@ -470,6 +478,7 @@ async function createCourse(): Promise<void> {
 async function updateCourse(): Promise<void> {
     if (!courseForm.course_id) {
         setStatus('course_id is required.');
+
         return;
     }
 
@@ -481,6 +490,7 @@ async function updateCourse(): Promise<void> {
 async function deleteCourse(): Promise<void> {
     if (!courseForm.course_id) {
         setStatus('course_id is required.');
+
         return;
     }
 
@@ -493,6 +503,7 @@ async function deleteCourse(): Promise<void> {
 async function loadCourseDetail(): Promise<void> {
     if (!courseForm.course_id) {
         setStatus('course_id is required.');
+
         return;
     }
 
@@ -506,6 +517,7 @@ async function onThumbnailSelected(event: Event): Promise<void> {
 
     if (!file || !courseForm.course_id) {
         setStatus('Select a file and set course_id first.');
+
         return;
     }
 
@@ -517,6 +529,7 @@ async function onThumbnailSelected(event: Event): Promise<void> {
 async function submitCourse(): Promise<void> {
     if (!courseForm.course_id) {
         setStatus('course_id is required.');
+
         return;
     }
 
@@ -528,6 +541,7 @@ async function submitCourse(): Promise<void> {
 async function publishCourse(): Promise<void> {
     if (!courseForm.course_id) {
         setStatus('course_id is required.');
+
         return;
     }
 
@@ -539,6 +553,7 @@ async function publishCourse(): Promise<void> {
 async function archiveCourse(): Promise<void> {
     if (!courseForm.course_id) {
         setStatus('course_id is required.');
+
         return;
     }
 
@@ -550,6 +565,7 @@ async function archiveCourse(): Promise<void> {
 async function loadCourseSections(): Promise<void> {
     if (!sectionForm.course_id) {
         setStatus('course_id is required.');
+
         return;
     }
 
@@ -561,6 +577,7 @@ async function loadCourseSections(): Promise<void> {
 async function createSection(): Promise<void> {
     if (!sectionForm.course_id || !sectionForm.title) {
         setStatus('course_id and title are required.');
+
         return;
     }
 
@@ -575,6 +592,7 @@ async function createSection(): Promise<void> {
 async function updateSection(): Promise<void> {
     if (!sectionForm.course_id || !sectionForm.section_id) {
         setStatus('course_id and section_id are required.');
+
         return;
     }
 
@@ -589,6 +607,7 @@ async function updateSection(): Promise<void> {
 async function deleteSection(): Promise<void> {
     if (!sectionForm.course_id || !sectionForm.section_id) {
         setStatus('course_id and section_id are required.');
+
         return;
     }
 
@@ -600,6 +619,7 @@ async function deleteSection(): Promise<void> {
 async function reorderSections(): Promise<void> {
     if (!sectionForm.course_id) {
         setStatus('course_id is required.');
+
         return;
     }
 
@@ -612,6 +632,7 @@ async function reorderSections(): Promise<void> {
 async function createLecture(): Promise<void> {
     if (!lectureForm.section_id || !lectureForm.title) {
         setStatus('section_id and lecture title are required.');
+
         return;
     }
 
@@ -629,6 +650,7 @@ async function createLecture(): Promise<void> {
 async function updateLecture(): Promise<void> {
     if (!lectureForm.section_id || !lectureForm.lecture_id) {
         setStatus('section_id and lecture_id are required.');
+
         return;
     }
 
@@ -646,6 +668,7 @@ async function updateLecture(): Promise<void> {
 async function deleteLecture(): Promise<void> {
     if (!lectureForm.section_id || !lectureForm.lecture_id) {
         setStatus('section_id and lecture_id are required.');
+
         return;
     }
 
@@ -657,6 +680,7 @@ async function deleteLecture(): Promise<void> {
 async function reorderLectures(): Promise<void> {
     if (!lectureForm.section_id) {
         setStatus('section_id is required.');
+
         return;
     }
 
@@ -669,6 +693,7 @@ async function reorderLectures(): Promise<void> {
 async function enrollCourse(): Promise<void> {
     if (!enrollmentForm.course_id) {
         setStatus('course_id is required.');
+
         return;
     }
 
@@ -687,6 +712,7 @@ async function loadEnrollments(): Promise<void> {
 async function loadEnrollmentDetail(): Promise<void> {
     if (!enrollmentForm.enrollment_id) {
         setStatus('enrollment_id is required.');
+
         return;
     }
 
@@ -698,6 +724,7 @@ async function loadEnrollmentDetail(): Promise<void> {
 async function completeLecture(): Promise<void> {
     if (!enrollmentForm.enrollment_id || !enrollmentForm.lecture_id) {
         setStatus('enrollment_id and lecture_id are required.');
+
         return;
     }
 
@@ -709,6 +736,7 @@ async function completeLecture(): Promise<void> {
 async function createCheckout(): Promise<void> {
     if (!paymentForm.course_id) {
         setStatus('course_id is required.');
+
         return;
     }
 
@@ -733,6 +761,7 @@ async function loadPayments(): Promise<void> {
 async function requestRefund(): Promise<void> {
     if (!paymentForm.payment_id) {
         setStatus('payment_id is required.');
+
         return;
     }
 
@@ -744,6 +773,7 @@ async function requestRefund(): Promise<void> {
 async function loadReviews(): Promise<void> {
     if (!reviewForm.course_id) {
         setStatus('course_id is required.');
+
         return;
     }
 
@@ -756,6 +786,7 @@ async function loadReviews(): Promise<void> {
 async function createReview(): Promise<void> {
     if (!reviewForm.course_id) {
         setStatus('course_id is required.');
+
         return;
     }
 
@@ -772,6 +803,7 @@ async function createReview(): Promise<void> {
 async function updateReview(): Promise<void> {
     if (!reviewForm.course_id || !reviewForm.review_id) {
         setStatus('course_id and review_id are required.');
+
         return;
     }
 
@@ -786,6 +818,7 @@ async function updateReview(): Promise<void> {
 async function deleteReview(): Promise<void> {
     if (!reviewForm.course_id || !reviewForm.review_id) {
         setStatus('course_id and review_id are required.');
+
         return;
     }
 
@@ -797,6 +830,7 @@ async function deleteReview(): Promise<void> {
 async function replyReview(): Promise<void> {
     if (!reviewForm.course_id || !reviewForm.review_id) {
         setStatus('course_id and review_id are required.');
+
         return;
     }
 
@@ -827,6 +861,7 @@ function buildQuizQuestions(): Array<{
 async function createQuiz(): Promise<void> {
     if (!quizForm.lecture_id) {
         setStatus('lecture_id is required.');
+
         return;
     }
 
@@ -841,6 +876,7 @@ async function createQuiz(): Promise<void> {
 async function updateQuiz(): Promise<void> {
     if (!quizForm.lecture_id) {
         setStatus('lecture_id is required.');
+
         return;
     }
 
@@ -855,6 +891,7 @@ async function updateQuiz(): Promise<void> {
 async function attemptQuiz(): Promise<void> {
     if (!quizForm.lecture_id || !quizForm.question_id || !quizForm.answer_id) {
         setStatus('lecture_id, question_id and answer_id are required.');
+
         return;
     }
 
@@ -873,6 +910,7 @@ async function attemptQuiz(): Promise<void> {
 async function loadQuizAttempts(): Promise<void> {
     if (!quizForm.lecture_id) {
         setStatus('lecture_id is required.');
+
         return;
     }
 
@@ -898,6 +936,7 @@ async function readAllNotifications(): Promise<void> {
 async function readOneNotification(): Promise<void> {
     if (!notificationForm.notification_id) {
         setStatus('notification_id is required.');
+
         return;
     }
 
@@ -916,6 +955,7 @@ async function loadAdminUsers(): Promise<void> {
 async function updateAdminRole(): Promise<void> {
     if (!adminForm.user_id) {
         setStatus('user_id is required.');
+
         return;
     }
 
@@ -927,6 +967,7 @@ async function updateAdminRole(): Promise<void> {
 async function updateAdminBan(): Promise<void> {
     if (!adminForm.user_id) {
         setStatus('user_id is required.');
+
         return;
     }
 

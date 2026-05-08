@@ -130,6 +130,7 @@ export function useSkillbroApi() {
         } catch (caught) {
             if (typeof caught === 'object' && caught !== null && 'status' in caught) {
                 error.value = caught as ApiError;
+
                 throw caught;
             }
 
@@ -139,6 +140,7 @@ export function useSkillbroApi() {
             };
 
             error.value = fallback;
+
             throw fallback;
         } finally {
             loading.value = false;
@@ -508,6 +510,7 @@ export function useSkillbroApi() {
             useAuth: false,
         }).then((response) => {
             setToken(response.token);
+
             return response;
         });
     }
@@ -519,6 +522,7 @@ export function useSkillbroApi() {
             useAuth: false,
         }).then((response) => {
             setToken(response.token);
+
             return response;
         });
     }
@@ -528,6 +532,7 @@ export function useSkillbroApi() {
             method: 'POST',
         }).then((response) => {
             setToken(null);
+
             return response;
         });
     }
