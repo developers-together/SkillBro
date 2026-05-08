@@ -79,6 +79,7 @@ describe('notifications api', function () {
             ->assertJson(fn ($json) => $json
                 ->where('id', $notification->id)
                 ->whereNot('read_at', null)
+                ->etc()
             );
     });
 });

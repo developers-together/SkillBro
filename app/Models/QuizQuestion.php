@@ -25,6 +25,6 @@ class QuizQuestion extends Model
     /** @return HasMany<QuizAnswer, $this> */
     public function answers(): HasMany
     {
-        return $this->hasMany(QuizAnswer::class);
+        return $this->hasMany(QuizAnswer::class, 'question_id');
     }
 }
