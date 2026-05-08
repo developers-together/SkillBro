@@ -5,10 +5,12 @@ import type {
     SkillbroCategory,
     SkillbroCourse,
     SkillbroEnrollment,
+    SkillbroLecture,
     SkillbroQuiz,
     SkillbroQuizAttempt,
     SkillbroReview,
     SkillbroSection,
+    SkillbroTag,
     SkillbroUser,
 } from '@/types/skillbro-api';
 
@@ -18,7 +20,10 @@ type RequestOptions = {
     method?: HttpMethod;
     body?: FormData | Record<string, unknown>;
     query?: Record<string, string | number | boolean | null | undefined>;
+    useAuth?: boolean;
 };
+
+const SKILLBRO_TOKEN_KEY = 'skillbro_api_token';
 
 function toQueryString(query?: RequestOptions['query']): string {
     if (!query) {
@@ -60,14 +65,36 @@ function normalizeApiError(status: number, payload: unknown): ApiError {
 export function useSkillbroApi() {
     const loading = ref(false);
     const error = ref<ApiError | null>(null);
+    const token = ref<string | null>(
+        typeof window !== 'undefined' ? window.localStorage.getItem(SKILLBRO_TOKEN_KEY) : null,
+    );
+
+    function setToken(nextToken: string | null): void {
+        token.value = nextToken;
+
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        if (nextToken) {
+            window.localStorage.setItem(SKILLBRO_TOKEN_KEY, nextToken);
+        } else {
+            window.localStorage.removeItem(SKILLBRO_TOKEN_KEY);
+        }
+    }
 
     async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
         const method = options.method ?? 'GET';
         const url = `${path}${toQueryString(options.query)}`;
+        const useAuth = options.useAuth ?? true;
 
         const headers = new Headers({
             Accept: 'application/json',
         });
+
+        if (useAuth && token.value) {
+            headers.set('Authorization', `Bearer ${token.value}`);
+        }
 
         let body: BodyInit | undefined;
 
@@ -138,9 +165,48 @@ export function useSkillbroApi() {
         );
     }
 
-    function getTags(): Promise<Array<{ id: number; name: string; slug: string }>> {
-        return request<{ data: Array<{ id: number; name: string; slug: string }> }>('/api/v1/tags')
+    function getTags(): Promise<SkillbroTag[]> {
+        return request<{ data: SkillbroTag[] }>('/api/v1/tags')
             .then((response) => response.data);
+    }
+
+    function createCategory(payload: {
+        name: string;
+        parent_id?: number | null;
+    }): Promise<SkillbroCategory> {
+        return request<SkillbroCategory>('/api/v1/categories', {
+            method: 'POST',
+            body: payload,
+        });
+    }
+
+    function updateCategory(
+        categoryId: number,
+        payload: { name?: string; parent_id?: number | null },
+    ): Promise<SkillbroCategory> {
+        return request<SkillbroCategory>(`/api/v1/categories/${categoryId}`, {
+            method: 'PUT',
+            body: payload,
+        });
+    }
+
+    function deleteCategory(categoryId: number): Promise<null> {
+        return request<null>(`/api/v1/categories/${categoryId}`, {
+            method: 'DELETE',
+        });
+    }
+
+    function createTag(payload: { name: string }): Promise<SkillbroTag> {
+        return request<SkillbroTag>('/api/v1/tags', {
+            method: 'POST',
+            body: payload,
+        });
+    }
+
+    function deleteTag(tagId: number): Promise<null> {
+        return request<null>(`/api/v1/tags/${tagId}`, {
+            method: 'DELETE',
+        });
     }
 
     function createCourse(payload: Record<string, unknown>): Promise<SkillbroCourse> {
@@ -154,10 +220,136 @@ export function useSkillbroApi() {
         return request<SkillbroCourse>(`/api/v1/courses/${courseId}`);
     }
 
+    function updateCourse(courseId: number, payload: Record<string, unknown>): Promise<SkillbroCourse> {
+        return request<SkillbroCourse>(`/api/v1/courses/${courseId}`, {
+            method: 'PUT',
+            body: payload,
+        });
+    }
+
+    function deleteCourse(courseId: number): Promise<null> {
+        return request<null>(`/api/v1/courses/${courseId}`, {
+            method: 'DELETE',
+        });
+    }
+
+    function uploadCourseThumbnail(courseId: number, file: File): Promise<{ thumbnail: string }> {
+        const formData = new FormData();
+        formData.set('thumbnail', file);
+
+        return request<{ thumbnail: string }>(`/api/v1/courses/${courseId}/thumbnail`, {
+            method: 'POST',
+            body: formData,
+        });
+    }
+
+    function submitCourse(courseId: number): Promise<{ status: string }> {
+        return request<{ status: string }>(`/api/v1/courses/${courseId}/submit`, {
+            method: 'POST',
+        });
+    }
+
+    function publishCourse(courseId: number): Promise<{ status: string }> {
+        return request<{ status: string }>(`/api/v1/courses/${courseId}/publish`, {
+            method: 'POST',
+        });
+    }
+
+    function archiveCourse(courseId: number): Promise<{ status: string }> {
+        return request<{ status: string }>(`/api/v1/courses/${courseId}/archive`, {
+            method: 'POST',
+        });
+    }
+
+    function getCourseSections(courseId: number): Promise<SkillbroSection[]> {
+        return request<{ data: SkillbroSection[] }>(`/api/v1/courses/${courseId}/sections`)
+            .then((response) => response.data);
+    }
+
     function createSection(courseId: number, payload: { title: string; position?: number }): Promise<SkillbroSection> {
         return request<SkillbroSection>(`/api/v1/courses/${courseId}/sections`, {
             method: 'POST',
             body: payload,
+        });
+    }
+
+    function updateSection(
+        courseId: number,
+        sectionId: number,
+        payload: { title?: string; position?: number },
+    ): Promise<SkillbroSection> {
+        return request<SkillbroSection>(`/api/v1/courses/${courseId}/sections/${sectionId}`, {
+            method: 'PUT',
+            body: payload,
+        });
+    }
+
+    function deleteSection(courseId: number, sectionId: number): Promise<null> {
+        return request<null>(`/api/v1/courses/${courseId}/sections/${sectionId}`, {
+            method: 'DELETE',
+        });
+    }
+
+    function reorderSections(
+        courseId: number,
+        sections: Array<{ id: number; position: number }>,
+    ): Promise<{ message: string }> {
+        return request<{ message: string }>(`/api/v1/courses/${courseId}/sections/reorder`, {
+            method: 'POST',
+            body: {
+                sections,
+            },
+        });
+    }
+
+    function createLecture(
+        sectionId: number,
+        payload: {
+            title: string;
+            type: SkillbroLecture['type'];
+            content?: string | null;
+            is_preview?: boolean;
+            position?: number;
+        },
+    ): Promise<SkillbroLecture> {
+        return request<SkillbroLecture>(`/api/v1/sections/${sectionId}/lectures`, {
+            method: 'POST',
+            body: payload,
+        });
+    }
+
+    function updateLecture(
+        sectionId: number,
+        lectureId: number,
+        payload: {
+            title?: string;
+            type?: SkillbroLecture['type'];
+            content?: string | null;
+            is_preview?: boolean;
+            position?: number;
+        },
+    ): Promise<SkillbroLecture> {
+        return request<SkillbroLecture>(`/api/v1/sections/${sectionId}/lectures/${lectureId}`, {
+            method: 'PUT',
+            body: payload,
+        });
+    }
+
+    function deleteLecture(sectionId: number, lectureId: number): Promise<null> {
+        return request<null>(`/api/v1/sections/${sectionId}/lectures/${lectureId}`, {
+            method: 'DELETE',
+        });
+    }
+
+    function reorderLectures(
+        sectionId: number,
+        lectures: Array<{ id: number; position: number }>,
+    ): Promise<{ message: string }> {
+        return request<{ message: string }>(`/api/v1/sections/${sectionId}/lectures/reorder`, {
+            method: 'POST',
+            body: {
+                lectures,
+            },
         });
     }
 
@@ -186,6 +378,15 @@ export function useSkillbroApi() {
         return request<{ data: SkillbroEnrollment[]; meta: PaginatedResponse<SkillbroEnrollment>['meta'] }>(
             '/api/v1/enrollments',
         ).then(unwrapPaginated);
+    }
+
+    function createEnrollment(courseId: number): Promise<SkillbroEnrollment> {
+        return request<SkillbroEnrollment>('/api/v1/enrollments', {
+            method: 'POST',
+            body: {
+                course_id: courseId,
+            },
+        });
     }
 
     function getEnrollment(enrollmentId: number): Promise<SkillbroEnrollment> {
@@ -284,6 +485,132 @@ export function useSkillbroApi() {
         return request('/api/v1/admin/stats');
     }
 
+    function getInstructorProfile(userId: number): Promise<{
+        instructor: SkillbroUser;
+        courses: PaginatedResponse<SkillbroCourse>;
+    }> {
+        return request<{
+            instructor: SkillbroUser;
+            courses: PaginatedResponse<SkillbroCourse>;
+        }>(`/api/v1/instructors/${userId}`);
+    }
+
+    function register(payload: {
+        name: string;
+        email: string;
+        password: string;
+        password_confirmation: string;
+        device_name?: string;
+    }): Promise<{ token: string; user: SkillbroUser }> {
+        return request<{ token: string; user: SkillbroUser }>('/api/v1/auth/register', {
+            method: 'POST',
+            body: payload,
+            useAuth: false,
+        }).then((response) => {
+            setToken(response.token);
+            return response;
+        });
+    }
+
+    function login(payload: { email: string; password: string; device_name?: string }): Promise<{ token: string; user: SkillbroUser }> {
+        return request<{ token: string; user: SkillbroUser }>('/api/v1/auth/login', {
+            method: 'POST',
+            body: payload,
+            useAuth: false,
+        }).then((response) => {
+            setToken(response.token);
+            return response;
+        });
+    }
+
+    function logout(): Promise<{ message: string }> {
+        return request<{ message: string }>('/api/v1/auth/logout', {
+            method: 'POST',
+        }).then((response) => {
+            setToken(null);
+            return response;
+        });
+    }
+
+    function forgotPassword(payload: { email: string }): Promise<{ message: string }> {
+        return request<{ message: string }>('/api/v1/auth/forgot-password', {
+            method: 'POST',
+            body: payload,
+            useAuth: false,
+        });
+    }
+
+    function resetPassword(payload: {
+        token: string;
+        email: string;
+        password: string;
+        password_confirmation: string;
+    }): Promise<{ message: string }> {
+        return request<{ message: string }>('/api/v1/auth/reset-password', {
+            method: 'POST',
+            body: payload,
+            useAuth: false,
+        });
+    }
+
+    function resendVerificationEmail(): Promise<{ message: string }> {
+        return request<{ message: string }>('/api/v1/auth/email/resend', {
+            method: 'POST',
+        });
+    }
+
+    function verifyEmail(userId: number, hash: string): Promise<{ message?: string }> {
+        return request<{ message?: string }>(`/api/v1/auth/verify-email/${userId}/${hash}`, {
+            method: 'GET',
+            useAuth: false,
+        });
+    }
+
+    function createPaymentCheckout(payload: {
+        course_id: number;
+        success_url?: string;
+        cancel_url?: string;
+    }): Promise<{ url?: string; session_id?: string }> {
+        return request<{ url?: string; session_id?: string }>('/api/v1/payments/checkout', {
+            method: 'POST',
+            body: payload,
+        });
+    }
+
+    function getPayments(): Promise<PaginatedResponse<{
+        id: number;
+        course_id: number;
+        amount: string;
+        currency: string;
+        status: string;
+        created_at: string | null;
+    }>> {
+        return request<{
+            data: Array<{
+                id: number;
+                course_id: number;
+                amount: string;
+                currency: string;
+                status: string;
+                created_at: string | null;
+            }>;
+            meta: PaginatedResponse<{
+                id: number;
+                course_id: number;
+                amount: string;
+                currency: string;
+                status: string;
+                created_at: string | null;
+            }>['meta'];
+        }>('/api/v1/payments').then(unwrapPaginated);
+    }
+
+    function requestPaymentRefund(paymentId: number): Promise<{ message?: string }> {
+        return request<{ message?: string }>(`/api/v1/payments/${paymentId}/refund`, {
+            method: 'POST',
+        });
+    }
+
     function getCourseReviews(courseId: number): Promise<PaginatedResponse<SkillbroReview>> {
         return request<{ data: SkillbroReview[]; meta: PaginatedResponse<SkillbroReview>['meta'] }>(
             `/api/v1/courses/${courseId}/reviews`,
@@ -376,17 +703,46 @@ export function useSkillbroApi() {
     return {
         loading,
         error,
+        token,
+        setToken,
         request,
+        register,
+        login,
+        logout,
+        forgotPassword,
+        resetPassword,
+        resendVerificationEmail,
+        verifyEmail,
         getCourses,
         getCategories,
         getTags,
+        createCategory,
+        updateCategory,
+        deleteCategory,
+        createTag,
+        deleteTag,
         createCourse,
         getCourse,
+        updateCourse,
+        deleteCourse,
+        uploadCourseThumbnail,
+        submitCourse,
+        publishCourse,
+        archiveCourse,
+        getCourseSections,
         createSection,
+        updateSection,
+        deleteSection,
+        reorderSections,
+        createLecture,
+        updateLecture,
+        deleteLecture,
+        reorderLectures,
         getProfile,
         updateProfile,
         uploadAvatar,
         getEnrollments,
+        createEnrollment,
         getEnrollment,
         completeLecture,
         getAdminUsers,
@@ -397,6 +753,9 @@ export function useSkillbroApi() {
         markAllNotificationsRead,
         markNotificationRead,
         getAdminStats,
+        createPaymentCheckout,
+        getPayments,
+        requestPaymentRefund,
         getCourseReviews,
         createCourseReview,
         updateCourseReview,
@@ -406,5 +765,6 @@ export function useSkillbroApi() {
         updateLectureQuiz,
         attemptLectureQuiz,
         getLectureQuizAttempts,
+        getInstructorProfile,
     };
 }

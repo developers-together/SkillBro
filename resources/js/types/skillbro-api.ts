@@ -22,6 +22,12 @@ export type SkillbroCategory = {
     children?: SkillbroCategory[];
 };
 
+export type SkillbroTag = {
+    id: number;
+    name: string;
+    slug: string;
+};
+
 export type SkillbroUser = {
     id: number;
     name: string;
@@ -126,5 +132,13 @@ export type SkillbroQuizAttempt = {
     score: number;
     passed: boolean;
     answers: Array<{ question_id: number; answer_id: number }>;
+    created_at: string | null;
+};
+
+export type SkillbroNotification = {
+    id: string;
+    type: string;
+    data: Record<string, unknown>;
+    read_at: string | null;
     created_at: string | null;
 };
