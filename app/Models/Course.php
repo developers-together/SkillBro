@@ -121,7 +121,7 @@ class Course extends Model
 
     public function isFree(): bool
     {
-        return $this->price == 0;
+        return (float) $this->price <= 0.0;
     }
 
     public function isOwnedBy(User $user): bool

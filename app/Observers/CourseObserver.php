@@ -34,6 +34,7 @@ class CourseObserver
         $count = 1;
 
         while (
+            $count <= 100 &&
             Course::withTrashed()
                 ->where('slug', $slug)
                 ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))

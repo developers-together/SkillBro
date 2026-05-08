@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\File;
 
 class CourseController extends Controller
@@ -55,6 +56,12 @@ class CourseController extends Controller
 
         $course->load(['instructor', 'category', 'tags', 'sections.lectures']);
 
+        // Signal to LectureResource whether the authenticated user is enrolled
+        $isEnrolled = $request->user()
+            && $course->enrollments()->where('user_id', $request->user()->id)->exists();
+
+        $request->attributes->set('is_enrolled', $isEnrolled);
+
         return response()->json(new CourseDetailResource($course));
     }
 
@@ -89,14 +96,15 @@ class CourseController extends Controller
         $this->authorize('update', $course);
 
         $request->validate([
-            'thumbnail' => ['required', File::image()->max(5 * 1024)],
+            'thumbnail' => ['required', File::image()->max(5 * 1024)->mimes('jpg', 'jpeg', 'png', 'webp')],
         ]);
 
         if ($course->thumbnail) {
             Storage::disk('public')->delete($course->thumbnail);
         }
 
-        $path = $request->file('thumbnail')->store("thumbnails/{$course->id}", 'public');
+        // UUID-namespaced path prevents cross-instructor collision on numeric course IDs
+        $path = $request->file('thumbnail')->store('thumbnails/'.Str::uuid(), 'public');
 
         $course->update(['thumbnail' => $path]);
 

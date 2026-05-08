@@ -68,6 +68,6 @@ class CoursePolicy
 
     public function archive(User $user, Course $course): bool
     {
-        return $course->isOwnedBy($user);
+        return $course->isOwnedBy($user) && $course->status === CourseStatus::Published;
     }
 }
