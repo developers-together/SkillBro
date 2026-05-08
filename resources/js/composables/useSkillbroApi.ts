@@ -5,6 +5,8 @@ import type {
     SkillbroCategory,
     SkillbroCourse,
     SkillbroEnrollment,
+    SkillbroQuiz,
+    SkillbroQuizAttempt,
     SkillbroReview,
     SkillbroSection,
     SkillbroUser,
@@ -321,6 +323,56 @@ export function useSkillbroApi() {
         });
     }
 
+    function createLectureQuiz(
+        lectureId: number,
+        payload: {
+            pass_percentage?: number;
+            questions: Array<{
+                question: string;
+                position?: number;
+                answers: Array<{ answer: string; is_correct: boolean }>;
+            }>;
+        },
+    ): Promise<SkillbroQuiz> {
+        return request<SkillbroQuiz>(`/api/v1/lectures/${lectureId}/quiz`, {
+            method: 'POST',
+            body: payload,
+        });
+    }
+
+    function updateLectureQuiz(
+        lectureId: number,
+        payload: {
+            pass_percentage?: number;
+            questions?: Array<{
+                question: string;
+                position?: number;
+                answers: Array<{ answer: string; is_correct: boolean }>;
+            }>;
+        },
+    ): Promise<SkillbroQuiz> {
+        return request<SkillbroQuiz>(`/api/v1/lectures/${lectureId}/quiz`, {
+            method: 'PUT',
+            body: payload,
+        });
+    }
+
+    function attemptLectureQuiz(
+        lectureId: number,
+        payload: { answers: Array<{ question_id: number; answer_id: number }> },
+    ): Promise<SkillbroQuizAttempt> {
+        return request<SkillbroQuizAttempt>(`/api/v1/lectures/${lectureId}/quiz/attempt`, {
+            method: 'POST',
+            body: payload,
+        });
+    }
+
+    function getLectureQuizAttempts(lectureId: number): Promise<PaginatedResponse<SkillbroQuizAttempt>> {
+        return request<{ data: SkillbroQuizAttempt[]; meta: PaginatedResponse<SkillbroQuizAttempt>['meta'] }>(
+            `/api/v1/lectures/${lectureId}/quiz/attempts`,
+        ).then(unwrapPaginated);
+    }
+
     return {
         loading,
         error,
@@ -350,5 +402,9 @@ export function useSkillbroApi() {
         updateCourseReview,
         deleteCourseReview,
         replyToCourseReview,
+        createLectureQuiz,
+        updateLectureQuiz,
+        attemptLectureQuiz,
+        getLectureQuizAttempts,
     };
 }

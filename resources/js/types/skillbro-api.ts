@@ -96,3 +96,35 @@ export type SkillbroReview = {
     created_at: string | null;
     updated_at: string | null;
 };
+
+export type SkillbroQuizAnswer = {
+    id: number;
+    answer: string;
+    is_correct: boolean;
+};
+
+export type SkillbroQuizQuestion = {
+    id: number;
+    question: string;
+    position: number;
+    answers: SkillbroQuizAnswer[];
+};
+
+export type SkillbroQuiz = {
+    id: number;
+    lecture_id: number;
+    pass_percentage: number;
+    questions: SkillbroQuizQuestion[];
+    created_at: string | null;
+    updated_at: string | null;
+};
+
+export type SkillbroQuizAttempt = {
+    id: number;
+    quiz_id: number;
+    enrollment_id: number;
+    score: number;
+    passed: boolean;
+    answers: Array<{ question_id: number; answer_id: number }>;
+    created_at: string | null;
+};
