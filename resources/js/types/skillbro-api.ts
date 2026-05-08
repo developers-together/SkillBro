@@ -85,3 +85,14 @@ export type SkillbroEnrollment = {
         completed_at: string | null;
     }>;
 };
+
+export type SkillbroReview = {
+    id: number;
+    rating: number;
+    body: string | null;
+    instructor_reply: string | null;
+    student?: SkillbroUser;
+    course_id: number;
+    created_at: string | null;
+    updated_at: string | null;
+};

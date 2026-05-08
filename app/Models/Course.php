@@ -88,6 +88,12 @@ class Course extends Model
         return $this->hasMany(Enrollment::class);
     }
 
+    /** @return HasMany<Review, $this> */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
     /**
      * Scope: only published courses.
      *

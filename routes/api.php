@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\InstructorController;
 use App\Http\Controllers\Api\V1\LectureController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\SectionController;
 use App\Http\Controllers\Api\V1\TagController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,7 @@ Route::prefix('v1')->group(function () {
     Route::get('courses', [CourseController::class, 'index']);
     Route::get('courses/{course}', [CourseController::class, 'show']);
     Route::get('courses/{course}/sections', [SectionController::class, 'index']);
+    Route::get('courses/{course}/reviews', [ReviewController::class, 'index']);
     Route::get('instructors/{user}', [InstructorController::class, 'show']);
 
     // ── Authenticated ────────────────────────────────────────────────────────
@@ -77,6 +79,12 @@ Route::prefix('v1')->group(function () {
             'enrollments/{enrollment}/lectures/{lecture}/complete',
             [EnrollmentController::class, 'completeLecture']
         );
+
+        // Reviews
+        Route::post('courses/{course}/reviews', [ReviewController::class, 'store']);
+        Route::put('courses/{course}/reviews/{review}', [ReviewController::class, 'update']);
+        Route::delete('courses/{course}/reviews/{review}', [ReviewController::class, 'destroy']);
+        Route::post('courses/{course}/reviews/{review}/reply', [ReviewController::class, 'reply']);
 
         // Notifications
         Route::get('notifications', [NotificationController::class, 'index']);

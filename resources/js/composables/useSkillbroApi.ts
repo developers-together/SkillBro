@@ -5,6 +5,7 @@ import type {
     SkillbroCategory,
     SkillbroCourse,
     SkillbroEnrollment,
+    SkillbroReview,
     SkillbroSection,
     SkillbroUser,
 } from '@/types/skillbro-api';
@@ -281,6 +282,45 @@ export function useSkillbroApi() {
         return request('/api/v1/admin/stats');
     }
 
+    function getCourseReviews(courseId: number): Promise<PaginatedResponse<SkillbroReview>> {
+        return request<{ data: SkillbroReview[]; meta: PaginatedResponse<SkillbroReview>['meta'] }>(
+            `/api/v1/courses/${courseId}/reviews`,
+        ).then(unwrapPaginated);
+    }
+
+    function createCourseReview(courseId: number, payload: { rating: number; body?: string | null }): Promise<SkillbroReview> {
+        return request<SkillbroReview>(`/api/v1/courses/${courseId}/reviews`, {
+            method: 'POST',
+            body: payload,
+        });
+    }
+
+    function updateCourseReview(
+        courseId: number,
+        reviewId: number,
+        payload: { rating?: number; body?: string | null },
+    ): Promise<SkillbroReview> {
+        return request<SkillbroReview>(`/api/v1/courses/${courseId}/reviews/${reviewId}`, {
+            method: 'PUT',
+            body: payload,
+        });
+    }
+
+    function deleteCourseReview(courseId: number, reviewId: number): Promise<null> {
+        return request<null>(`/api/v1/courses/${courseId}/reviews/${reviewId}`, {
+            method: 'DELETE',
+        });
+    }
+
+    function replyToCourseReview(courseId: number, reviewId: number, instructorReply: string): Promise<SkillbroReview> {
+        return request<SkillbroReview>(`/api/v1/courses/${courseId}/reviews/${reviewId}/reply`, {
+            method: 'POST',
+            body: {
+                instructor_reply: instructorReply,
+            },
+        });
+    }
+
     return {
         loading,
         error,
@@ -305,5 +345,10 @@ export function useSkillbroApi() {
         markAllNotificationsRead,
         markNotificationRead,
         getAdminStats,
+        getCourseReviews,
+        createCourseReview,
+        updateCourseReview,
+        deleteCourseReview,
+        replyToCourseReview,
     };
 }

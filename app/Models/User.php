@@ -47,4 +47,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Enrollment::class);
     }
+
+    /** @return HasMany<Review, $this> */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
 }
