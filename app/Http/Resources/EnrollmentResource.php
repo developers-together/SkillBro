@@ -16,7 +16,7 @@ class EnrollmentResource extends JsonResource
         return [
             'id' => $this->id,
             'course' => new CourseResource($this->whenLoaded('course')),
-            'enrolled_at' => $this->enrolled_at->toISOString(),
+            'enrolled_at' => $this->enrolled_at?->toISOString(),
             'completed_at' => $this->completed_at?->toISOString(),
             'is_completed' => $this->isCompleted(),
             'progress' => LectureProgressResource::collection($this->whenLoaded('lectureProgress')),

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\CourseStatus;
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Course\StoreCourseRequest;
 use App\Http\Requests\Course\UpdateCourseRequest;
@@ -56,11 +57,14 @@ class CourseController extends Controller
 
         $course->load(['instructor', 'category', 'tags', 'sections.lectures']);
 
-        // Signal to LectureResource whether the authenticated user is enrolled
-        $isEnrolled = $request->user()
-            && $course->enrollments()->where('user_id', $request->user()->id)->exists();
+        // Signal to LectureResource whether locked lecture content can be shown
+        $user = $request->user();
+        $isEnrolled = $user !== null
+            && $course->enrollments()->where('user_id', $user->id)->exists();
+        $isOwner = $user !== null && $course->user_id === $user->id;
+        $isAdmin = $user?->role === UserRole::Admin;
 
-        $request->attributes->set('is_enrolled', $isEnrolled);
+        $request->attributes->set('is_enrolled', $isEnrolled || $isOwner || $isAdmin);
 
         return response()->json(new CourseDetailResource($course));
     }
