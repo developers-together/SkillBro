@@ -11,8 +11,8 @@ describe('register', function () {
         $response = $this->postJson('/api/v1/auth/register', [
             'name' => 'John Doe',
             'email' => 'john@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
         ]);
 
         $response->assertStatus(201)
@@ -31,8 +31,8 @@ describe('register', function () {
         $this->postJson('/api/v1/auth/register', [
             'name' => 'Test',
             'email' => 'taken@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
         ])->assertStatus(422)->assertJsonValidationErrors(['email']);
     });
 
@@ -40,7 +40,7 @@ describe('register', function () {
         $this->postJson('/api/v1/auth/register', [
             'name' => 'Test',
             'email' => 'new@example.com',
-            'password' => 'password',
+            'password' => 'Password123!',
             'password_confirmation' => 'wrong',
         ])->assertStatus(422)->assertJsonValidationErrors(['password']);
     });
@@ -52,7 +52,7 @@ describe('login', function () {
 
         $this->postJson('/api/v1/auth/login', [
             'email' => 'user@example.com',
-            'password' => 'password',
+            'password' => 'Password123!',
         ])->assertOk()->assertJsonStructure(['token', 'user']);
     });
 
@@ -77,5 +77,13 @@ describe('logout', function () {
 
         // Token is revoked — DB record deleted
         expect($user->tokens()->count())->toBe(0);
+    });
+
+    it('does not fail when no current access token is attached', function () {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'sanctum')
+            ->postJson('/api/v1/auth/logout')
+            ->assertOk();
     });
 });

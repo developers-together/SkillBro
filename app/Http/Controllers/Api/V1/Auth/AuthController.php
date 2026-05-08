@@ -36,6 +36,12 @@ class AuthController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
+        if ($user->is_banned) {
+            Auth::guard()->logout();
+
+            return response()->json(['message' => 'Your account has been suspended.'], 403);
+        }
+
         $token = $user->createToken(
             $request->string('device_name', 'api')->toString()
         )->plainTextToken;
@@ -48,7 +54,7 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->user()?->currentAccessToken()?->delete();
 
         return response()->json(['message' => 'Logged out.']);
     }
