@@ -19,16 +19,25 @@ class LecturePolicy
 
     public function create(User $user, Lecture $lecture): bool
     {
-        return $lecture->section->course->isOwnedBy($user);
+        $section = $lecture->relationLoaded('section') ? $lecture->section : $lecture->section()->first();
+        $course = $section?->relationLoaded('course') ? $section->course : $section?->course()->first();
+
+        return $course?->isOwnedBy($user) ?? false;
     }
 
     public function update(User $user, Lecture $lecture): bool
     {
-        return $lecture->section->course->isOwnedBy($user);
+        $section = $lecture->relationLoaded('section') ? $lecture->section : $lecture->section()->first();
+        $course = $section?->relationLoaded('course') ? $section->course : $section?->course()->first();
+
+        return $course?->isOwnedBy($user) ?? false;
     }
 
     public function delete(User $user, Lecture $lecture): bool
     {
-        return $lecture->section->course->isOwnedBy($user);
+        $section = $lecture->relationLoaded('section') ? $lecture->section : $lecture->section()->first();
+        $course = $section?->relationLoaded('course') ? $section->course : $section?->course()->first();
+
+        return $course?->isOwnedBy($user) ?? false;
     }
 }

@@ -19,16 +19,22 @@ class SectionPolicy
 
     public function create(User $user, Section $section): bool
     {
-        return $section->course->isOwnedBy($user);
+        $course = $section->relationLoaded('course') ? $section->course : $section->course()->first();
+
+        return $course?->isOwnedBy($user) ?? false;
     }
 
     public function update(User $user, Section $section): bool
     {
-        return $section->course->isOwnedBy($user);
+        $course = $section->relationLoaded('course') ? $section->course : $section->course()->first();
+
+        return $course?->isOwnedBy($user) ?? false;
     }
 
     public function delete(User $user, Section $section): bool
     {
-        return $section->course->isOwnedBy($user);
+        $course = $section->relationLoaded('course') ? $section->course : $section->course()->first();
+
+        return $course?->isOwnedBy($user) ?? false;
     }
 }

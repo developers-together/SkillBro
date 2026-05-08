@@ -9,16 +9,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 class SendEnrollmentConfirmationEmail implements ShouldQueue
 {
     /**
-     * Queue connection for this listener.
-     */
-    public string $connection = 'redis';
-
-    /**
-     * Queue name for this listener.
-     */
-    public string $queue = 'emails';
-
-    /**
      * Number of times the listener may be attempted.
      */
     public int $tries = 3;
