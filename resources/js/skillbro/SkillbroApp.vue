@@ -11,6 +11,7 @@ import type {
     SkillbroEnrollment,
     SkillbroLecture,
     SkillbroNotification,
+    SkillbroPayment,
     SkillbroQuizAttempt,
     SkillbroReview,
     SkillbroSection,
@@ -60,12 +61,13 @@ const courseDetail = ref<SkillbroCourse | null>(null);
 const courseSections = ref<SkillbroSection[]>([]);
 const enrollments = ref<SkillbroEnrollment[]>([]);
 const enrollmentDetail = ref<SkillbroEnrollment | null>(null);
-const payments = ref<Array<{ id: number; course_id: number; amount: string; currency: string; status: string; created_at: string | null }>>([]);
+const payments = ref<SkillbroPayment[]>([]);
 const reviews = ref<SkillbroReview[]>([]);
 const quizAttempts = ref<SkillbroQuizAttempt[]>([]);
 const notifications = ref<SkillbroNotification[]>([]);
 const adminUsers = ref<SkillbroUser[]>([]);
 const adminCourses = ref<SkillbroCourse[]>([]);
+const adminPayments = ref<SkillbroPayment[]>([]);
 const adminStats = ref<Record<string, unknown> | null>(null);
 
 const registerForm = reactive({
@@ -141,6 +143,7 @@ const lectureForm = reactive({
     is_preview: false,
     position: '',
     reorder_json: '[{"id":1,"position":0}]',
+    video_duration: '',
 });
 
 const enrollmentForm = reactive({
@@ -180,6 +183,8 @@ const adminForm = reactive({
     user_id: '',
     role: 'student',
     ban: false,
+    payment_id: '',
+    approve_refund: true,
 });
 
 const isAuthenticated = computed(() => Boolean(token.value));
@@ -677,6 +682,24 @@ async function deleteLecture(): Promise<void> {
     }, 'Lecture deleted.');
 }
 
+async function onLectureVideoSelected(event: Event): Promise<void> {
+    const file = (event.target as HTMLInputElement).files?.[0];
+
+    if (!file || !lectureForm.lecture_id) {
+        setStatus('Select video and set lecture_id first.');
+
+        return;
+    }
+
+    await guarded(async () => {
+        await api.uploadLectureVideo(
+            Number(lectureForm.lecture_id),
+            file,
+            lectureForm.video_duration ? Number(lectureForm.video_duration) : undefined,
+        );
+    }, 'Lecture video uploaded.');
+}
+
 async function reorderLectures(): Promise<void> {
     if (!lectureForm.section_id) {
         setStatus('section_id is required.');
@@ -989,6 +1012,25 @@ async function loadAdminStats(): Promise<void> {
     }, 'Admin stats loaded.');
 }
 
+async function loadAdminPayments(): Promise<void> {
+    await guarded(async () => {
+        const response = await api.getAdminPayments();
+        adminPayments.value = response.data;
+    }, 'Admin payments loaded.');
+}
+
+async function decideAdminRefund(): Promise<void> {
+    if (!adminForm.payment_id) {
+        setStatus('payment_id is required.');
+
+        return;
+    }
+
+    await guarded(async () => {
+        await api.decideAdminPaymentRefund(Number(adminForm.payment_id), adminForm.approve_refund);
+    }, 'Refund decision saved.');
+}
+
 onMounted(async () => {
     if (isAuthenticated.value) {
         await loadProfile();
@@ -1206,6 +1248,8 @@ onMounted(async () => {
                             <label class="flex items-center gap-2 text-sm"><input v-model="lectureForm.is_preview" type="checkbox"> preview lecture</label>
                             <Input v-model="lectureForm.position" placeholder="lecture position" />
                             <textarea v-model="lectureForm.reorder_json" class="min-h-20 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm dark:border-slate-700" />
+                            <Input v-model="lectureForm.video_duration" placeholder="video_duration (seconds)" />
+                            <input type="file" accept="video/mp4,video/webm,video/quicktime" class="text-sm" @change="onLectureVideoSelected">
                             <div class="flex flex-wrap gap-2">
                                 <Button variant="outline" class="cursor-pointer" @click="createLecture">Create lecture</Button>
                                 <Button variant="outline" class="cursor-pointer" @click="updateLecture">Update lecture</Button>
@@ -1367,8 +1411,13 @@ onMounted(async () => {
                         <div class="flex flex-wrap gap-2">
                             <Button class="cursor-pointer" @click="loadAdminCourses">Load courses</Button>
                             <Button variant="outline" class="cursor-pointer" @click="loadAdminStats">Load stats</Button>
+                            <Button variant="outline" class="cursor-pointer" @click="loadAdminPayments">Load payments</Button>
                         </div>
+                        <Input v-model="adminForm.payment_id" placeholder="payment_id for refund decision" />
+                        <label class="flex items-center gap-2 text-sm"><input v-model="adminForm.approve_refund" type="checkbox"> approve refund</label>
+                        <Button variant="outline" class="cursor-pointer" @click="decideAdminRefund">Submit refund decision</Button>
                         <pre class="max-h-56 overflow-auto rounded-md bg-slate-100 p-3 text-xs dark:bg-slate-800">{{ adminCourses }}</pre>
+                        <pre class="max-h-56 overflow-auto rounded-md bg-slate-100 p-3 text-xs dark:bg-slate-800">{{ adminPayments }}</pre>
                         <pre class="max-h-56 overflow-auto rounded-md bg-slate-100 p-3 text-xs dark:bg-slate-800">{{ adminStats }}</pre>
                     </CardContent>
                 </Card>

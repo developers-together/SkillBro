@@ -6,6 +6,7 @@ import type {
     SkillbroCourse,
     SkillbroEnrollment,
     SkillbroLecture,
+    SkillbroPayment,
     SkillbroQuiz,
     SkillbroQuizAttempt,
     SkillbroReview,
@@ -343,6 +344,24 @@ export function useSkillbroApi() {
         });
     }
 
+    function uploadLectureVideo(
+        lectureId: number,
+        file: File,
+        videoDuration?: number,
+    ): Promise<SkillbroLecture> {
+        const formData = new FormData();
+        formData.set('video', file);
+
+        if (videoDuration !== undefined) {
+            formData.set('video_duration', String(videoDuration));
+        }
+
+        return request<SkillbroLecture>(`/api/v1/lectures/${lectureId}/video`, {
+            method: 'POST',
+            body: formData,
+        });
+    }
+
     function reorderLectures(
         sectionId: number,
         lectures: Array<{ id: number; position: number }>,
@@ -582,37 +601,32 @@ export function useSkillbroApi() {
         });
     }
 
-    function getPayments(): Promise<PaginatedResponse<{
-        id: number;
-        course_id: number;
-        amount: string;
-        currency: string;
-        status: string;
-        created_at: string | null;
-    }>> {
+    function getPayments(): Promise<PaginatedResponse<SkillbroPayment>> {
         return request<{
-            data: Array<{
-                id: number;
-                course_id: number;
-                amount: string;
-                currency: string;
-                status: string;
-                created_at: string | null;
-            }>;
-            meta: PaginatedResponse<{
-                id: number;
-                course_id: number;
-                amount: string;
-                currency: string;
-                status: string;
-                created_at: string | null;
-            }>['meta'];
+            data: SkillbroPayment[];
+            meta: PaginatedResponse<SkillbroPayment>['meta'];
         }>('/api/v1/payments').then(unwrapPaginated);
     }
 
     function requestPaymentRefund(paymentId: number): Promise<{ message?: string }> {
         return request<{ message?: string }>(`/api/v1/payments/${paymentId}/refund`, {
             method: 'POST',
+        });
+    }
+
+    function getAdminPayments(): Promise<PaginatedResponse<SkillbroPayment>> {
+        return request<{
+            data: SkillbroPayment[];
+            meta: PaginatedResponse<SkillbroPayment>['meta'];
+        }>('/api/v1/admin/payments').then(unwrapPaginated);
+    }
+
+    function decideAdminPaymentRefund(paymentId: number, approve: boolean): Promise<SkillbroPayment> {
+        return request<SkillbroPayment>(`/api/v1/admin/payments/${paymentId}/refund`, {
+            method: 'PUT',
+            body: {
+                approve,
+            },
         });
     }
 
@@ -743,6 +757,7 @@ export function useSkillbroApi() {
         updateLecture,
         deleteLecture,
         reorderLectures,
+        uploadLectureVideo,
         getProfile,
         updateProfile,
         uploadAvatar,
@@ -761,6 +776,8 @@ export function useSkillbroApi() {
         createPaymentCheckout,
         getPayments,
         requestPaymentRefund,
+        getAdminPayments,
+        decideAdminPaymentRefund,
         getCourseReviews,
         createCourseReview,
         updateCourseReview,

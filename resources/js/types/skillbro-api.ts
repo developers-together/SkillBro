@@ -135,6 +135,20 @@ export type SkillbroQuizAttempt = {
     created_at: string | null;
 };
 
+export type SkillbroPayment = {
+    id: number;
+    user_id: number;
+    course_id: number;
+    amount: string;
+    currency: string;
+    stripe_payment_intent_id: string | null;
+    stripe_session_id: string | null;
+    status: 'pending' | 'completed' | 'refunded' | 'failed';
+    refund_requested_at: string | null;
+    created_at: string | null;
+    updated_at: string | null;
+};
+
 export type SkillbroNotification = {
     id: string;
     type: string;
