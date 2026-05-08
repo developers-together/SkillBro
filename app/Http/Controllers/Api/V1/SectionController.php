@@ -10,6 +10,7 @@ use App\Models\Course;
 use App\Models\Section;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SectionController extends Controller
 {
@@ -39,6 +40,8 @@ class SectionController extends Controller
 
     public function update(UpdateSectionRequest $request, Course $course, Section $section): JsonResponse
     {
+        abort_unless($section->course_id === $course->id, 404);
+
         $this->authorize('update', $section);
 
         $section->update($request->validated());
@@ -48,6 +51,8 @@ class SectionController extends Controller
 
     public function destroy(Course $course, Section $section): JsonResponse
     {
+        abort_unless($section->course_id === $course->id, 404);
+
         $this->authorize('delete', $section);
 
         $section->delete();
@@ -59,7 +64,11 @@ class SectionController extends Controller
     {
         $request->validate([
             'sections' => ['required', 'array'],
-            'sections.*.id' => ['required', 'integer', 'exists:sections,id'],
+            'sections.*.id' => [
+                'required',
+                'integer',
+                Rule::exists('sections', 'id')->where('course_id', $course->id),
+            ],
             'sections.*.position' => ['required', 'integer', 'min:0'],
         ]);
 

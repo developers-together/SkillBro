@@ -10,6 +10,7 @@ use App\Models\Lecture;
 use App\Models\Section;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class LectureController extends Controller
 {
@@ -30,6 +31,8 @@ class LectureController extends Controller
 
     public function update(UpdateLectureRequest $request, Section $section, Lecture $lecture): JsonResponse
     {
+        abort_unless($lecture->section_id === $section->id, 404);
+
         $this->authorize('update', $lecture);
 
         $lecture->update($request->validated());
@@ -39,6 +42,8 @@ class LectureController extends Controller
 
     public function destroy(Section $section, Lecture $lecture): JsonResponse
     {
+        abort_unless($lecture->section_id === $section->id, 404);
+
         $this->authorize('delete', $lecture);
 
         $lecture->delete();
@@ -50,7 +55,11 @@ class LectureController extends Controller
     {
         $request->validate([
             'lectures' => ['required', 'array'],
-            'lectures.*.id' => ['required', 'integer', 'exists:lectures,id'],
+            'lectures.*.id' => [
+                'required',
+                'integer',
+                Rule::exists('lectures', 'id')->where('section_id', $section->id),
+            ],
             'lectures.*.position' => ['required', 'integer', 'min:0'],
         ]);
 
