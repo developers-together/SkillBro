@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\InstructorController;
 use App\Http\Controllers\Api\V1\LectureController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\QuizController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\SectionController;
 use App\Http\Controllers\Api\V1\TagController;
@@ -70,6 +71,12 @@ Route::prefix('v1')->group(function () {
         Route::put('sections/{section}/lectures/{lecture}', [LectureController::class, 'update']);
         Route::delete('sections/{section}/lectures/{lecture}', [LectureController::class, 'destroy']);
         Route::post('sections/{section}/lectures/reorder', [LectureController::class, 'reorder']);
+
+        // Quizzes
+        Route::post('lectures/{lecture}/quiz', [QuizController::class, 'store']);
+        Route::put('lectures/{lecture}/quiz', [QuizController::class, 'update']);
+        Route::post('lectures/{lecture}/quiz/attempt', [QuizController::class, 'attempt']);
+        Route::get('lectures/{lecture}/quiz/attempts', [QuizController::class, 'attempts']);
 
         // Enrollments
         Route::get('enrollments', [EnrollmentController::class, 'index']);

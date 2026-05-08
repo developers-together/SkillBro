@@ -48,6 +48,12 @@ class Enrollment extends Model
         return $this->hasMany(LectureProgress::class);
     }
 
+    /** @return HasMany<QuizAttempt, $this> */
+    public function quizAttempts(): HasMany
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
+
     public function isCompleted(): bool
     {
         return $this->completed_at !== null;

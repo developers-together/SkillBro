@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Lecture extends Model
 {
@@ -48,5 +49,11 @@ class Lecture extends Model
     public function progress(): HasMany
     {
         return $this->hasMany(LectureProgress::class);
+    }
+
+    /** @return HasOne<Quiz, $this> */
+    public function quiz(): HasOne
+    {
+        return $this->hasOne(Quiz::class);
     }
 }
