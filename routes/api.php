@@ -7,8 +7,10 @@ use App\Http\Controllers\Api\V1\CourseController;
 use App\Http\Controllers\Api\V1\EnrollmentController;
 use App\Http\Controllers\Api\V1\InstructorController;
 use App\Http\Controllers\Api\V1\LectureController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\SectionController;
+use App\Http\Controllers\Api\V1\TagController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -22,6 +24,7 @@ Route::prefix('v1')->group(function () {
 
     // ── Public ───────────────────────────────────────────────────────────────
     Route::get('categories', [CategoryController::class, 'index']);
+    Route::get('tags', [TagController::class, 'index']);
     Route::get('courses', [CourseController::class, 'index']);
     Route::get('courses/{course}', [CourseController::class, 'show']);
     Route::get('courses/{course}/sections', [SectionController::class, 'index']);
@@ -40,6 +43,8 @@ Route::prefix('v1')->group(function () {
             Route::post('categories', [CategoryController::class, 'store']);
             Route::put('categories/{category}', [CategoryController::class, 'update']);
             Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
+            Route::post('tags', [TagController::class, 'store']);
+            Route::delete('tags/{tag}', [TagController::class, 'destroy']);
         });
 
         // Courses
@@ -73,12 +78,18 @@ Route::prefix('v1')->group(function () {
             [EnrollmentController::class, 'completeLecture']
         );
 
+        // Notifications
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::post('notifications/read-all', [NotificationController::class, 'readAll']);
+        Route::put('notifications/{notificationId}', [NotificationController::class, 'markRead']);
+
         // Admin
         Route::middleware('role:admin')->prefix('admin')->group(function () {
             Route::get('users', [Admin\UserController::class, 'index']);
             Route::put('users/{user}/ban', [Admin\UserController::class, 'ban']);
             Route::put('users/{user}/role', [Admin\UserController::class, 'changeRole']);
             Route::get('courses', [Admin\CourseController::class, 'index']);
+            Route::get('stats', Admin\StatsController::class);
         });
     });
 });
