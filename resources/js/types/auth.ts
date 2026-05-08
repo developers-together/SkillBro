@@ -2,7 +2,10 @@ export type User = {
     id: number;
     name: string;
     email: string;
-    avatar?: string;
+    role?: 'student' | 'instructor' | 'admin';
+    avatar?: string | null;
+    bio?: string | null;
+    is_banned?: boolean;
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
