@@ -20,9 +20,9 @@ class StoreCourseRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
+            'description' => ['required', 'string', 'max:65535'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
-            'price' => ['sometimes', 'numeric', 'min:0'],
+            'price' => ['sometimes', 'numeric', 'min:0', 'max:9999.99'],
             'level' => ['sometimes', new Enum(CourseLevel::class)],
             'language' => ['sometimes', 'string', 'max:10'],
             'requirements' => ['sometimes', 'array'],

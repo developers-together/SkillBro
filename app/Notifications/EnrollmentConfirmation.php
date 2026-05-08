@@ -12,7 +12,19 @@ class EnrollmentConfirmation extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public readonly Enrollment $enrollment) {}
+    private string $courseTitle;
+
+    private string $courseSlug;
+
+    private int $courseId;
+
+    public function __construct(public readonly Enrollment $enrollment)
+    {
+        // Capture at dispatch time, not during queued job execution
+        $this->courseTitle = $enrollment->course->title;
+        $this->courseSlug = $enrollment->course->slug;
+        $this->courseId = $enrollment->course->id;
+    }
 
     /**
      * @return list<string>
@@ -24,11 +36,13 @@ class EnrollmentConfirmation extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
+        $frontendUrl = config('app.frontend_url', url('/'));
+
         return (new MailMessage)
-            ->subject("You're enrolled in {$this->enrollment->course->title}!")
+            ->subject("You're enrolled in {$this->courseTitle}!")
             ->greeting("Hello {$notifiable->name}!")
-            ->line("You've successfully enrolled in **{$this->enrollment->course->title}**.")
-            ->action('Start Learning', url('/courses/'.$this->enrollment->course->slug))
+            ->line("You've successfully enrolled in **{$this->courseTitle}**.")
+            ->action('Start Learning', "{$frontendUrl}/courses/{$this->courseSlug}")
             ->line('Happy learning!');
     }
 
@@ -39,8 +53,8 @@ class EnrollmentConfirmation extends Notification implements ShouldQueue
     {
         return [
             'type' => 'enrollment_confirmation',
-            'course_id' => $this->enrollment->course_id,
-            'course_title' => $this->enrollment->course->title,
+            'course_id' => $this->courseId,
+            'course_title' => $this->courseTitle,
         ];
     }
 }

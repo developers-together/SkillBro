@@ -47,6 +47,30 @@ describe('sections', function () {
         expect($s1->fresh()->position)->toBe(1)
             ->and($s2->fresh()->position)->toBe(0);
     });
+
+    it('returns not found when section does not belong to course in update route', function () {
+        $instructor = User::factory()->instructor()->create();
+        $courseA = Course::factory()->create(['user_id' => $instructor->id]);
+        $courseB = Course::factory()->create(['user_id' => $instructor->id]);
+        $section = Section::factory()->create(['course_id' => $courseA->id]);
+
+        $this->actingAs($instructor, 'sanctum')
+            ->putJson("/api/v1/courses/{$courseB->id}/sections/{$section->id}", [
+                'title' => 'Updated Through Wrong Course',
+            ])
+            ->assertNotFound();
+    });
+
+    it('returns not found when section does not belong to course in delete route', function () {
+        $instructor = User::factory()->instructor()->create();
+        $courseA = Course::factory()->create(['user_id' => $instructor->id]);
+        $courseB = Course::factory()->create(['user_id' => $instructor->id]);
+        $section = Section::factory()->create(['course_id' => $courseA->id]);
+
+        $this->actingAs($instructor, 'sanctum')
+            ->deleteJson("/api/v1/courses/{$courseB->id}/sections/{$section->id}")
+            ->assertNotFound();
+    });
 });
 
 describe('lectures', function () {
@@ -97,5 +121,31 @@ describe('lectures', function () {
                 'type' => 'text',
             ])
             ->assertStatus(403);
+    });
+
+    it('returns not found when lecture does not belong to section in update route', function () {
+        $instructor = User::factory()->instructor()->create();
+        $course = Course::factory()->create(['user_id' => $instructor->id]);
+        $sectionA = Section::factory()->create(['course_id' => $course->id]);
+        $sectionB = Section::factory()->create(['course_id' => $course->id]);
+        $lecture = Lecture::factory()->create(['section_id' => $sectionA->id]);
+
+        $this->actingAs($instructor, 'sanctum')
+            ->putJson("/api/v1/sections/{$sectionB->id}/lectures/{$lecture->id}", [
+                'title' => 'Wrong Parent',
+            ])
+            ->assertNotFound();
+    });
+
+    it('returns not found when lecture does not belong to section in delete route', function () {
+        $instructor = User::factory()->instructor()->create();
+        $course = Course::factory()->create(['user_id' => $instructor->id]);
+        $sectionA = Section::factory()->create(['course_id' => $course->id]);
+        $sectionB = Section::factory()->create(['course_id' => $course->id]);
+        $lecture = Lecture::factory()->create(['section_id' => $sectionA->id]);
+
+        $this->actingAs($instructor, 'sanctum')
+            ->deleteJson("/api/v1/sections/{$sectionB->id}/lectures/{$lecture->id}")
+            ->assertNotFound();
     });
 });

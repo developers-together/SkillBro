@@ -87,7 +87,7 @@ test('password can be updated', function () {
         ->actingAs($user)
         ->from(route('security.edit'))
         ->put(route('user-password.update'), [
-            'current_password' => 'password',
+            'current_password' => 'Password123!',
             'password' => 'new-password',
             'password_confirmation' => 'new-password',
         ]);

@@ -112,7 +112,11 @@ class Course extends Model
             ->when(isset($filters['category']), fn (Builder $q) => $q->where('category_id', $filters['category']))
             ->when(isset($filters['level']), fn (Builder $q) => $q->where('level', $filters['level']))
             ->when(isset($filters['price_max']), fn (Builder $q) => $q->where('price', '<=', $filters['price_max']))
-            ->when(isset($filters['free']), fn (Builder $q) => $q->where('price', 0))
+            ->when(
+                array_key_exists('free', $filters)
+                    && filter_var($filters['free'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === true,
+                fn (Builder $q) => $q->where('price', 0)
+            )
             ->when(isset($filters['search']), fn (Builder $q) => $q->where(function (Builder $inner) use ($filters) {
                 $inner->where('title', 'like', "%{$filters['search']}%")
                     ->orWhere('description', 'like', "%{$filters['search']}%");

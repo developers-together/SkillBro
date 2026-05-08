@@ -29,8 +29,8 @@ class CourseDetailResource extends JsonResource
             'category' => new CategoryResource($this->whenLoaded('category')),
             'tags' => $this->whenLoaded('tags', fn () => $this->tags->pluck('name')),
             'sections' => SectionResource::collection($this->whenLoaded('sections')),
-            'created_at' => $this->created_at->toISOString(),
-            'updated_at' => $this->updated_at->toISOString(),
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
         ];
     }
 }

@@ -3,6 +3,8 @@
 use App\Enums\CourseStatus;
 use App\Models\Category;
 use App\Models\Course;
+use App\Models\Lecture;
+use App\Models\Section;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 
@@ -26,6 +28,15 @@ describe('browse courses', function () {
         $this->getJson("/api/v1/courses?category={$category->id}")
             ->assertOk()
             ->assertJsonCount(1, 'data');
+    });
+
+    it('does not force free-only filtering when free is false', function () {
+        Course::factory()->published()->free()->create();
+        Course::factory()->published()->paid()->create();
+
+        $this->getJson('/api/v1/courses?free=0')
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
     });
 });
 
@@ -86,6 +97,25 @@ describe('update course', function () {
         $this->actingAs($instructor, 'sanctum')
             ->putJson("/api/v1/courses/{$course->id}", ['title' => 'Stolen Title'])
             ->assertStatus(403);
+    });
+
+    it('owner can view locked lecture content on own unpublished course', function () {
+        $instructor = User::factory()->instructor()->create();
+        $course = Course::factory()->create([
+            'user_id' => $instructor->id,
+            'status' => CourseStatus::Draft,
+        ]);
+        $section = Section::factory()->create(['course_id' => $course->id]);
+        Lecture::factory()->create([
+            'section_id' => $section->id,
+            'is_preview' => false,
+            'content' => 'Hidden lesson text',
+        ]);
+
+        $this->actingAs($instructor, 'sanctum')
+            ->getJson("/api/v1/courses/{$course->id}")
+            ->assertOk()
+            ->assertJsonPath('sections.0.lectures.0.content', 'Hidden lesson text');
     });
 });
 
