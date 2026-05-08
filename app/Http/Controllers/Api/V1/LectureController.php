@@ -10,7 +10,9 @@ use App\Models\Lecture;
 use App\Models\Section;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\File;
 
 class LectureController extends Controller
 {
@@ -75,5 +77,28 @@ class LectureController extends Controller
         }
 
         return response()->json(['message' => 'Lectures reordered.']);
+    }
+
+    public function uploadVideo(Request $request, Lecture $lecture): JsonResponse
+    {
+        $this->authorize('update', $lecture);
+
+        $request->validate([
+            'video' => ['required', File::types(['mp4', 'mov', 'webm'])->max(200 * 1024)],
+            'video_duration' => ['sometimes', 'nullable', 'integer', 'min:0'],
+        ]);
+
+        if ($lecture->video_path) {
+            Storage::disk('public')->delete($lecture->video_path);
+        }
+
+        $path = $request->file('video')->store("videos/{$lecture->id}", 'public');
+
+        $lecture->update([
+            'video_path' => $path,
+            'video_duration' => $request->integer('video_duration') ?: $lecture->video_duration,
+        ]);
+
+        return response()->json(new LectureResource($lecture->fresh()));
     }
 }

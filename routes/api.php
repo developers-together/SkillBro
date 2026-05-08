@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\EnrollmentController;
 use App\Http\Controllers\Api\V1\InstructorController;
 use App\Http\Controllers\Api\V1\LectureController;
 use App\Http\Controllers\Api\V1\NotificationController;
+use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\QuizController;
 use App\Http\Controllers\Api\V1\ReviewController;
@@ -21,8 +22,16 @@ Route::prefix('v1')->group(function () {
     Route::prefix('auth')->middleware('throttle:6,1')->group(function () {
         Route::post('register', [AuthController::class, 'register']);
         Route::post('login', [AuthController::class, 'login']);
+        Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
+        Route::post('reset-password', [AuthController::class, 'resetPassword']);
+        Route::get('verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+            ->middleware('signed')
+            ->name('api.verification.verify');
         Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
     });
+
+    // ── Webhooks (public) ────────────────────────────────────────────────────
+    Route::post('payments/webhook', [PaymentController::class, 'webhook']);
 
     // ── Public ───────────────────────────────────────────────────────────────
     Route::get('categories', [CategoryController::class, 'index']);
@@ -35,6 +44,8 @@ Route::prefix('v1')->group(function () {
 
     // ── Authenticated ────────────────────────────────────────────────────────
     Route::middleware('auth:sanctum')->group(function () {
+        // Authenticated auth actions
+        Route::post('auth/email/resend', [AuthController::class, 'resendVerificationEmail']);
 
         // Profile
         Route::get('user', [ProfileController::class, 'show']);
@@ -71,6 +82,7 @@ Route::prefix('v1')->group(function () {
         Route::put('sections/{section}/lectures/{lecture}', [LectureController::class, 'update']);
         Route::delete('sections/{section}/lectures/{lecture}', [LectureController::class, 'destroy']);
         Route::post('sections/{section}/lectures/reorder', [LectureController::class, 'reorder']);
+        Route::post('lectures/{lecture}/video', [LectureController::class, 'uploadVideo']);
 
         // Quizzes
         Route::post('lectures/{lecture}/quiz', [QuizController::class, 'store']);
@@ -86,6 +98,11 @@ Route::prefix('v1')->group(function () {
             'enrollments/{enrollment}/lectures/{lecture}/complete',
             [EnrollmentController::class, 'completeLecture']
         );
+
+        // Payments
+        Route::post('payments/checkout', [PaymentController::class, 'checkout']);
+        Route::get('payments', [PaymentController::class, 'index']);
+        Route::post('payments/{payment}/refund', [PaymentController::class, 'requestRefund']);
 
         // Reviews
         Route::post('courses/{course}/reviews', [ReviewController::class, 'store']);
@@ -105,6 +122,8 @@ Route::prefix('v1')->group(function () {
             Route::put('users/{user}/role', [Admin\UserController::class, 'changeRole']);
             Route::get('courses', [Admin\CourseController::class, 'index']);
             Route::get('stats', Admin\StatsController::class);
+            Route::get('payments', [Admin\PaymentController::class, 'index']);
+            Route::put('payments/{payment}/refund', [Admin\PaymentController::class, 'decideRefund']);
         });
     });
 });

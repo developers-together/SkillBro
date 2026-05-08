@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Enums\CourseStatus;
+use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
@@ -41,6 +43,14 @@ class StatsController extends Controller
                 'enrollments' => [
                     'total' => $totalEnrollments,
                     'completed' => Enrollment::query()->whereNotNull('completed_at')->count(),
+                ],
+                'revenue' => [
+                    'completed_total' => (string) Payment::query()
+                        ->where('status', PaymentStatus::Completed)
+                        ->sum('amount'),
+                    'refunded_total' => (string) Payment::query()
+                        ->where('status', PaymentStatus::Refunded)
+                        ->sum('amount'),
                 ],
             ];
         });

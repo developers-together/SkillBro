@@ -94,6 +94,12 @@ class Course extends Model
         return $this->hasMany(Review::class);
     }
 
+    /** @return HasMany<Payment, $this> */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     /**
      * Scope: only published courses.
      *
