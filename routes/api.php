@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
 
     // ── Auth (guest) ─────────────────────────────────────────────────────────
-    Route::prefix('auth')->group(function () {
+    Route::prefix('auth')->middleware('throttle:6,1')->group(function () {
         Route::post('register', [AuthController::class, 'register']);
         Route::post('login', [AuthController::class, 'login']);
         Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
@@ -24,6 +24,7 @@ Route::prefix('v1')->group(function () {
     Route::get('categories', [CategoryController::class, 'index']);
     Route::get('courses', [CourseController::class, 'index']);
     Route::get('courses/{course}', [CourseController::class, 'show']);
+    Route::get('courses/{course}/sections', [SectionController::class, 'index']);
     Route::get('instructors/{user}', [InstructorController::class, 'show']);
 
     // ── Authenticated ────────────────────────────────────────────────────────
@@ -52,7 +53,6 @@ Route::prefix('v1')->group(function () {
             ->middleware('role:admin');
 
         // Sections
-        Route::get('courses/{course}/sections', [SectionController::class, 'index']);
         Route::post('courses/{course}/sections', [SectionController::class, 'store']);
         Route::put('courses/{course}/sections/{section}', [SectionController::class, 'update']);
         Route::delete('courses/{course}/sections/{section}', [SectionController::class, 'destroy']);

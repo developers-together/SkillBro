@@ -18,7 +18,13 @@ class CheckRole
     {
         $userRole = $request->user()?->role;
 
-        if (! $userRole instanceof UserRole || $userRole->value !== $role) {
+        try {
+            $requiredRole = UserRole::from($role);
+        } catch (\ValueError) {
+            abort(403, 'Unknown role.');
+        }
+
+        if (! $userRole instanceof UserRole || $userRole !== $requiredRole) {
             abort(403, 'Unauthorized.');
         }
 
