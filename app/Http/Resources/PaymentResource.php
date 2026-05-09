@@ -21,6 +21,7 @@ class PaymentResource extends JsonResource
             'currency' => $this->currency,
             'payment_intent_id' => $this->payment_intent_id,
             'checkout_session_id' => $this->checkout_session_id,
+            'idempotency_key' => $this->idempotency_key,
             'status' => $this->status->value,
             'refund_requested_at' => $this->refund_requested_at?->toISOString(),
             'created_at' => $this->created_at?->toISOString(),
