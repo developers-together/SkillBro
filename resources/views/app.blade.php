@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'dark') == 'dark'])>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'dark') === 'dark'])>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
             (function() {
                 const appearance = '{{ $appearance ?? "dark" }}';
@@ -21,7 +20,6 @@
             })();
         </script>
 
-        {{-- Inline style to set the HTML background color based on our theme in app.css --}}
         <style>
             html {
                 background-color: #000;
@@ -37,13 +35,11 @@
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
         @fonts
-
-        @vite(['resources/css/app.css', 'resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
-        <x-inertia::head>
-            <title>{{ config('app.name', 'Laravel') }}</title>
-        </x-inertia::head>
+        @vite(['resources/css/app.css', 'resources/js/skillbro/main.ts'])
+        <title>{{ config('app.name', 'SkillBro') }}</title>
     </head>
     <body class="font-sans antialiased">
-        <x-inertia::app />
+        <div id="skillbro-app"></div>
     </body>
 </html>
+
