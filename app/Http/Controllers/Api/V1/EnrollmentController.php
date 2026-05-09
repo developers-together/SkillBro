@@ -13,6 +13,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class EnrollmentController extends Controller
 {
@@ -111,6 +113,38 @@ class EnrollmentController extends Controller
 
         if ($totalLectures > 0 && $totalLectures === $completedLectures && ! $enrollment->isCompleted()) {
             $enrollment->update(['completed_at' => now()]);
+            $this->issueCertificate($enrollment->fresh());
         }
+    }
+
+    private function issueCertificate(Enrollment $enrollment): void
+    {
+        if ($enrollment->certificate()->exists()) {
+            return;
+        }
+
+        $certificateNumber = sprintf(
+            'SB-%d-%s',
+            $enrollment->id,
+            Str::upper(Str::random(8))
+        );
+        $filePath = sprintf('certificates/%d/%s.txt', $enrollment->id, Str::uuid());
+
+        $content = implode(PHP_EOL, [
+            'SkillBro Course Completion Certificate',
+            'Certificate Number: '.$certificateNumber,
+            'Enrollment ID: '.$enrollment->id,
+            'Course ID: '.$enrollment->course_id,
+            'Student ID: '.$enrollment->user_id,
+            'Issued At: '.now()->toISOString(),
+        ]);
+
+        Storage::disk('public')->put($filePath, $content);
+
+        $enrollment->certificate()->create([
+            'certificate_number' => $certificateNumber,
+            'file_path' => $filePath,
+            'issued_at' => now(),
+        ]);
     }
 }
