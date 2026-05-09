@@ -4,23 +4,6 @@ import prettier from 'eslint-config-prettier/flat';
 import importPlugin from 'eslint-plugin-import';
 import vue from 'eslint-plugin-vue';
 
-const controlStatements = [
-    'if',
-    'return',
-    'for',
-    'while',
-    'do',
-    'switch',
-    'try',
-    'throw',
-];
-const paddingAroundControl = [
-    ...controlStatements.flatMap((stmt) => [
-        { blankLine: 'always', prev: '*', next: stmt },
-        { blankLine: 'always', prev: stmt, next: '*' },
-    ]),
-];
-
 export default defineConfigWithVueTs(
     vue.configs['flat/essential'],
     vueTsConfigs.recommended,
@@ -50,7 +33,7 @@ export default defineConfigWithVueTs(
             'import/order': [
                 'error',
                 {
-                    groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+                    groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'type'],
                     alphabetize: {
                         order: 'asc',
                         caseInsensitive: true,
@@ -69,10 +52,7 @@ export default defineConfigWithVueTs(
         },
         rules: {
             '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: false }],
-            '@stylistic/padding-line-between-statements': [
-                'error',
-                ...paddingAroundControl,
-            ],
+            '@stylistic/padding-line-between-statements': 'off',
         },
     },
     {
