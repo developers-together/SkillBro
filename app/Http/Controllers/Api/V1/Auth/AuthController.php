@@ -68,6 +68,16 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out.']);
     }
 
+    public function me(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'user' => new UserResource($user),
+            'verified' => $user?->hasVerifiedEmail() ?? false,
+        ]);
+    }
+
     public function forgotPassword(HttpRequest $request): JsonResponse
     {
         $request->validate([
