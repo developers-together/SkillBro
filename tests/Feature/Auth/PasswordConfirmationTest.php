@@ -2,24 +2,19 @@
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
-test('confirm password screen can be rendered', function () {
-    $user = User::factory()->create();
-
-    $response = $this->actingAs($user)->get(route('password.confirm'));
-
-    $response->assertOk();
-
-    $response->assertInertia(fn (Assert $page) => $page
-        ->component('auth/ConfirmPassword'),
-    );
+test('auth me requires authentication token', function () {
+    $this->getJson('/api/v1/auth/me')->assertUnauthorized();
 });
 
-test('password confirmation requires authentication', function () {
-    $response = $this->get(route('password.confirm'));
+test('auth me returns user payload for authenticated user', function () {
+    $user = User::factory()->create();
 
-    $response->assertRedirect(route('login'));
+    $this->actingAs($user, 'sanctum')
+        ->getJson('/api/v1/auth/me')
+        ->assertOk()
+        ->assertJsonPath('user.id', $user->id)
+        ->assertJsonPath('verified', true);
 });
