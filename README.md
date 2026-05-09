@@ -506,7 +506,7 @@ MAIL_FROM_NAME="SkillBro"
 - Role-based access (student / instructor / admin)
 
 ### 🔜 Phase 2 — Monetization
-- Payments via Stripe (checkout session + webhook)
+- Provider-neutral payments (checkout session + webhook)
 - Paid course enrollment
 - Payment history + refund requests
 - Instructor revenue dashboard
