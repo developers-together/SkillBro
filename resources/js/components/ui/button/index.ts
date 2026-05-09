@@ -11,7 +11,7 @@ export const buttonVariants = cva(
         default:
           "bg-black text-white hover:bg-[#3f3f46]",
         aloe:
-          "bg-aloe-10 text-black hover:bg-[#b4f4cb]",
+          "bg-aloe-10 text-black hover:bg-[#d99565]",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
         outline:
