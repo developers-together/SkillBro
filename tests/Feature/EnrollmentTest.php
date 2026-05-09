@@ -8,6 +8,7 @@ use App\Models\Section;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Storage;
 
 uses(LazilyRefreshDatabase::class);
 
@@ -98,6 +99,8 @@ describe('lecture progress', function () {
     });
 
     it('marks course as completed when all lectures done', function () {
+        Storage::fake('public');
+
         $student = User::factory()->create();
         $course = Course::factory()->published()->free()->create();
         $section = Section::factory()->for($course)->create();
@@ -109,5 +112,38 @@ describe('lecture progress', function () {
             ->assertOk();
 
         expect($enrollment->fresh()->completed_at)->not->toBeNull();
+        $this->assertDatabaseHas('course_certificates', [
+            'enrollment_id' => $enrollment->id,
+        ]);
+
+        $certificatePath = $enrollment->fresh()->certificate?->file_path;
+        expect($certificatePath)->not->toBeNull();
+        Storage::disk('public')->assertExists((string) $certificatePath);
+    });
+
+    it('returns certificate resource for completed enrollment', function () {
+        Storage::fake('public');
+
+        $student = User::factory()->create();
+        $course = Course::factory()->published()->free()->create();
+        $section = Section::factory()->for($course)->create();
+        $lecture = Lecture::factory()->for($section)->create();
+        $enrollment = Enrollment::factory()->create(['user_id' => $student->id, 'course_id' => $course->id]);
+
+        $this->actingAs($student, 'sanctum')
+            ->postJson("/api/v1/enrollments/{$enrollment->id}/lectures/{$lecture->id}/complete")
+            ->assertOk();
+
+        $this->actingAs($student, 'sanctum')
+            ->getJson("/api/v1/enrollments/{$enrollment->id}/certificate")
+            ->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'enrollment_id',
+                    'certificate_number',
+                    'download_url',
+                ],
+            ]);
     });
 });
