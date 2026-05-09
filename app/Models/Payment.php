@@ -21,6 +21,7 @@ class Payment extends Model
         'currency',
         'payment_intent_id',
         'checkout_session_id',
+        'idempotency_key',
         'status',
         'refund_requested_at',
     ];
@@ -47,5 +48,14 @@ class Payment extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function canTransitionTo(PaymentStatus $next): bool
+    {
+        return match ($this->status) {
+            PaymentStatus::Pending => in_array($next, [PaymentStatus::Completed, PaymentStatus::Failed], true),
+            PaymentStatus::Completed => $next === PaymentStatus::Refunded,
+            PaymentStatus::Refunded, PaymentStatus::Failed => false,
+        };
     }
 }
