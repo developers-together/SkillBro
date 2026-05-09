@@ -3,6 +3,7 @@ import type {
     ApiError,
     PaginatedResponse,
     SkillbroCategory,
+    SkillbroCertificate,
     SkillbroCourse,
     SkillbroEnrollment,
     SkillbroLecture,
@@ -22,6 +23,7 @@ type RequestOptions = {
     body?: FormData | Record<string, unknown>;
     query?: Record<string, string | number | boolean | null | undefined>;
     useAuth?: boolean;
+    headers?: Record<string, string>;
 };
 
 const SKILLBRO_TOKEN_KEY = 'skillbro_api_token';
@@ -95,6 +97,10 @@ export function useSkillbroApi() {
 
         if (useAuth && token.value) {
             headers.set('Authorization', `Bearer ${token.value}`);
+        }
+
+        for (const [key, value] of Object.entries(options.headers ?? {})) {
+            headers.set(key, value);
         }
 
         let body: BodyInit | undefined;
@@ -556,6 +562,12 @@ export function useSkillbroApi() {
         });
     }
 
+    function getMe(): Promise<{ user: SkillbroUser; verified: boolean }> {
+        return request<{ user: SkillbroUser; verified: boolean }>('/api/v1/auth/me', {
+            method: 'GET',
+        });
+    }
+
     function forgotPassword(payload: { email: string }): Promise<{ message: string }> {
         return request<{ message: string }>('/api/v1/auth/forgot-password', {
             method: 'POST',
@@ -583,10 +595,15 @@ export function useSkillbroApi() {
         });
     }
 
-    function verifyEmail(userId: number, hash: string): Promise<{ message?: string }> {
+    function verifyEmail(
+        userId: number,
+        hash: string,
+        query?: { expires?: string; signature?: string },
+    ): Promise<{ message?: string }> {
         return request<{ message?: string }>(`/api/v1/auth/verify-email/${userId}/${hash}`, {
             method: 'GET',
             useAuth: false,
+            query,
         });
     }
 
@@ -594,10 +611,19 @@ export function useSkillbroApi() {
         course_id: number;
         success_url?: string;
         cancel_url?: string;
+        idempotency_key?: string;
     }): Promise<{ url?: string; session_id?: string }> {
+        const idempotencyKey = payload.idempotency_key ?? crypto.randomUUID();
+
         return request<{ url?: string; session_id?: string }>('/api/v1/payments/checkout', {
             method: 'POST',
-            body: payload,
+            body: {
+                ...payload,
+                idempotency_key: idempotencyKey,
+            },
+            headers: {
+                'Idempotency-Key': idempotencyKey,
+            },
         });
     }
 
@@ -719,6 +745,22 @@ export function useSkillbroApi() {
         ).then(unwrapPaginated);
     }
 
+    function getEnrollmentCertificate(enrollmentId: number): Promise<SkillbroCertificate> {
+        return request(`/api/v1/enrollments/${enrollmentId}/certificate`);
+    }
+
+    function getInstructorRevenueSummary(): Promise<{
+        summary: {
+            completed_total: string;
+            refunded_total: string;
+            completed_count: number;
+            refunded_count: number;
+        };
+        monthly: Array<{ month: string; total: string }>;
+    }> {
+        return request('/api/v1/instructors/revenue/me');
+    }
+
     return {
         loading,
         error,
@@ -727,6 +769,7 @@ export function useSkillbroApi() {
         request,
         register,
         login,
+        getMe,
         logout,
         forgotPassword,
         resetPassword,
@@ -787,6 +830,8 @@ export function useSkillbroApi() {
         updateLectureQuiz,
         attemptLectureQuiz,
         getLectureQuizAttempts,
+        getEnrollmentCertificate,
+        getInstructorRevenueSummary,
         getInstructorProfile,
     };
 }
