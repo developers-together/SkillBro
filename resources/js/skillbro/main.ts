@@ -1,4 +1,5 @@
 import { createApp } from 'vue';
-import SkillbroApp from './SkillbroApp.vue';
+import App from './App.vue';
+import router from './router';
 
-createApp(SkillbroApp).mount('#skillbro-app');
+createApp(App).use(router).mount('#skillbro-app');
