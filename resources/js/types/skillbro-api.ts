@@ -143,10 +143,20 @@ export type SkillbroPayment = {
     currency: string;
     payment_intent_id: string | null;
     checkout_session_id: string | null;
+    idempotency_key?: string | null;
     status: 'pending' | 'completed' | 'refunded' | 'failed';
     refund_requested_at: string | null;
     created_at: string | null;
     updated_at: string | null;
+};
+
+export type SkillbroCertificate = {
+    id: number;
+    enrollment_id: number;
+    certificate_number: string;
+    issued_at: string | null;
+    file_path: string | null;
+    download_url: string | null;
 };
 
 export type SkillbroNotification = {
