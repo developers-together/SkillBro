@@ -51,7 +51,7 @@ const auth = computed(() => page.props.auth);
 const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
 
 const activeItemStyles =
-    'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
+    'bg-white/10 text-white border border-white/10';
 
 const mainNavItems: NavItem[] = [
     {
@@ -77,21 +77,17 @@ const rightNavItems: NavItem[] = [
 
 <template>
     <div>
-        <div class="border-b border-sidebar-border/80">
-            <div class="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
+        <div class="border-b border-white/10">
+            <div class="mx-auto flex h-16 items-center px-4 md:max-w-[1500px]">
                 <!-- Mobile Menu -->
                 <div class="lg:hidden">
                     <Sheet>
                         <SheetTrigger :as-child="true">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                class="mr-2 h-9 w-9"
-                            >
+                            <Button variant="ghost" size="icon" class="mr-2 h-9 w-9 text-white">
                                 <Menu class="h-5 w-5" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" class="w-[300px] p-6">
+                        <SheetContent side="left" class="w-[300px] border-white/10 bg-black p-6 text-white">
                             <SheetTitle class="sr-only"
                                 >Navigation menu</SheetTitle
                             >
@@ -108,7 +104,7 @@ const rightNavItems: NavItem[] = [
                                         v-for="item in mainNavItems"
                                         :key="item.title"
                                         :href="item.href"
-                                        class="flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
+                                        class="flex items-center gap-x-3 rounded-full px-3 py-2 text-sm font-medium hover:bg-white/10"
                                         :class="
                                             whenCurrentUrl(
                                                 item.href,
@@ -159,7 +155,7 @@ const rightNavItems: NavItem[] = [
                             <NavigationMenuItem
                                 v-for="(item, index) in mainNavItems"
                                 :key="index"
-                                class="relative flex h-full items-center"
+                            class="relative flex h-full items-center"
                             >
                                 <Link
                                     :class="[
@@ -168,7 +164,7 @@ const rightNavItems: NavItem[] = [
                                             item.href,
                                             activeItemStyles,
                                         ),
-                                        'h-9 cursor-pointer px-3',
+                                        'h-9 cursor-pointer rounded-full px-4 text-white',
                                     ]"
                                     :href="item.href"
                                 >
@@ -181,7 +177,7 @@ const rightNavItems: NavItem[] = [
                                 </Link>
                                 <div
                                     v-if="isCurrentUrl(item.href)"
-                                    class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"
+                                    class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-aloe-10"
                                 ></div>
                             </NavigationMenuItem>
                         </NavigationMenuList>
@@ -193,7 +189,7 @@ const rightNavItems: NavItem[] = [
                         <Button
                             variant="ghost"
                             size="icon"
-                            class="group h-9 w-9 cursor-pointer"
+                            class="group h-9 w-9 cursor-pointer text-white"
                         >
                             <Search
                                 class="size-5 opacity-80 group-hover:opacity-100"
@@ -212,7 +208,7 @@ const rightNavItems: NavItem[] = [
                                                 variant="ghost"
                                                 size="icon"
                                                 as-child
-                                                class="group h-9 w-9 cursor-pointer"
+                                                class="group h-9 w-9 cursor-pointer text-white"
                                             >
                                                 <a
                                                     :href="toUrl(item.href)"
@@ -253,8 +249,8 @@ const rightNavItems: NavItem[] = [
                                         :src="auth.user.avatar"
                                         :alt="auth.user.name"
                                     />
-                                    <AvatarFallback
-                                        class="rounded-lg bg-neutral-200 font-semibold text-black dark:bg-neutral-700 dark:text-white"
+                                <AvatarFallback
+                                        class="rounded-full border border-white/10 bg-black font-semibold text-white"
                                     >
                                         {{ getInitials(auth.user?.name) }}
                                     </AvatarFallback>
@@ -271,10 +267,10 @@ const rightNavItems: NavItem[] = [
 
         <div
             v-if="props.breadcrumbs.length > 1"
-            class="flex w-full border-b border-sidebar-border/70"
+            class="flex w-full border-b border-white/10"
         >
             <div
-                class="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl"
+                class="mx-auto flex h-12 w-full items-center justify-start px-4 text-muted-links md:max-w-[1500px]"
             >
                 <Breadcrumbs :breadcrumbs="breadcrumbs" />
             </div>
