@@ -141,8 +141,8 @@ export type SkillbroPayment = {
     course_id: number;
     amount: string;
     currency: string;
-    stripe_payment_intent_id: string | null;
-    stripe_session_id: string | null;
+    payment_intent_id: string | null;
+    checkout_session_id: string | null;
     status: 'pending' | 'completed' | 'refunded' | 'failed';
     refund_requested_at: string | null;
     created_at: string | null;

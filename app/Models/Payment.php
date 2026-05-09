@@ -19,8 +19,8 @@ class Payment extends Model
         'course_id',
         'amount',
         'currency',
-        'stripe_payment_intent_id',
-        'stripe_session_id',
+        'payment_intent_id',
+        'checkout_session_id',
         'status',
         'refund_requested_at',
     ];

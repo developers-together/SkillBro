@@ -47,8 +47,8 @@ class PaymentController extends Controller
             'course_id' => $course->id,
             'amount' => $course->price,
             'currency' => 'usd',
-            'stripe_session_id' => $sessionId,
-            'stripe_payment_intent_id' => $intentId,
+            'checkout_session_id' => $sessionId,
+            'payment_intent_id' => $intentId,
             'status' => PaymentStatus::Pending,
         ]);
 
@@ -56,7 +56,7 @@ class PaymentController extends Controller
 
         return response()->json([
             'url' => $successUrl.'&session_id='.$sessionId,
-            'session_id' => $payment->stripe_session_id,
+            'session_id' => $payment->checkout_session_id,
         ], 201);
     }
 
@@ -83,8 +83,8 @@ class PaymentController extends Controller
         $eventType = $payload['type'] ?? null;
 
         $payment = Payment::query()
-            ->when($sessionId, fn ($query) => $query->orWhere('stripe_session_id', $sessionId))
-            ->when($intentId, fn ($query) => $query->orWhere('stripe_payment_intent_id', $intentId))
+            ->when($sessionId, fn ($query) => $query->orWhere('checkout_session_id', $sessionId))
+            ->when($intentId, fn ($query) => $query->orWhere('payment_intent_id', $intentId))
             ->first();
 
         if (! $payment) {
@@ -92,7 +92,7 @@ class PaymentController extends Controller
         }
 
         $isCompleted = in_array($status, ['paid', 'completed', 'succeeded'], true)
-            || in_array($eventType, ['checkout.session.completed', 'payment_intent.succeeded'], true);
+            || in_array($eventType, ['checkout.completed', 'payment.completed'], true);
 
         if (! $isCompleted) {
             $payment->update(['status' => PaymentStatus::Failed]);

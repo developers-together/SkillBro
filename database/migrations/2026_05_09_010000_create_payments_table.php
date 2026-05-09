@@ -15,8 +15,8 @@ return new class extends Migration
             $table->foreignId('course_id')->constrained()->cascadeOnDelete();
             $table->decimal('amount', 8, 2);
             $table->string('currency', 3)->default('usd');
-            $table->string('stripe_payment_intent_id')->nullable()->unique();
-            $table->string('stripe_session_id')->nullable()->unique();
+            $table->string('payment_intent_id')->nullable()->unique();
+            $table->string('checkout_session_id')->nullable()->unique();
             $table->string('status')->default(PaymentStatus::Pending->value);
             $table->timestamp('refund_requested_at')->nullable();
             $table->timestamps();

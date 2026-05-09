@@ -21,8 +21,8 @@ class PaymentFactory extends Factory
             'course_id' => Course::factory()->published()->paid(),
             'amount' => 19.99,
             'currency' => 'usd',
-            'stripe_payment_intent_id' => 'pi_'.Str::random(16),
-            'stripe_session_id' => 'cs_'.Str::random(16),
+            'payment_intent_id' => 'pi_'.Str::random(16),
+            'checkout_session_id' => 'cs_'.Str::random(16),
             'status' => PaymentStatus::Pending,
             'refund_requested_at' => null,
         ];

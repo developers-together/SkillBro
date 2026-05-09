@@ -38,8 +38,8 @@ describe('payments api', function () {
         ]);
 
         $this->postJson('/api/v1/payments/webhook', [
-            'type' => 'checkout.session.completed',
-            'session_id' => $payment->stripe_session_id,
+            'type' => 'checkout.completed',
+            'session_id' => $payment->checkout_session_id,
             'status' => 'paid',
         ])->assertOk();
 
