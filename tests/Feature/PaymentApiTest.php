@@ -3,6 +3,7 @@
 use App\Enums\PaymentStatus;
 use App\Models\Course;
 use App\Models\Payment;
+use App\Models\PaymentWebhookEvent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 
@@ -49,6 +50,61 @@ describe('payments api', function () {
             'user_id' => $student->id,
             'course_id' => $course->id,
         ]);
+    });
+
+    it('replays checkout idempotently for same user and idempotency key', function () {
+        $student = User::factory()->create();
+        $course = Course::factory()->published()->paid()->create();
+        $idempotencyKey = 'idem-checkout-1';
+
+        $first = $this->actingAs($student, 'sanctum')
+            ->postJson('/api/v1/payments/checkout', [
+                'course_id' => $course->id,
+                'idempotency_key' => $idempotencyKey,
+            ])
+            ->assertCreated()
+            ->json();
+
+        $second = $this->actingAs($student, 'sanctum')
+            ->withHeader('Idempotency-Key', $idempotencyKey)
+            ->postJson('/api/v1/payments/checkout', [
+                'course_id' => $course->id,
+            ])
+            ->assertOk()
+            ->assertJsonPath('idempotent_replay', true)
+            ->json();
+
+        expect($second['session_id'])->toBe($first['session_id']);
+
+        $this->assertDatabaseCount('payments', 1);
+    });
+
+    it('deduplicates webhook events by event id', function () {
+        $student = User::factory()->create();
+        $course = Course::factory()->published()->paid()->create();
+
+        $payment = Payment::factory()->create([
+            'user_id' => $student->id,
+            'course_id' => $course->id,
+            'status' => PaymentStatus::Pending,
+        ]);
+
+        $payload = [
+            'event_id' => 'evt_abc123',
+            'type' => 'checkout.completed',
+            'session_id' => $payment->checkout_session_id,
+            'status' => 'paid',
+        ];
+
+        $this->postJson('/api/v1/payments/webhook', $payload)
+            ->assertOk();
+
+        $this->postJson('/api/v1/payments/webhook', $payload)
+            ->assertOk()
+            ->assertJsonPath('message', 'Webhook already processed.');
+
+        expect($payment->fresh()->status)->toBe(PaymentStatus::Completed);
+        expect(PaymentWebhookEvent::query()->where('event_id', 'evt_abc123')->count())->toBe(1);
     });
 
     it('returns authenticated student payment history', function () {
