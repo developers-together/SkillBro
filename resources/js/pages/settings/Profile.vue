@@ -47,7 +47,7 @@ const user = computed(() => page.props.auth.user);
 
         <Form
             v-bind="ProfileController.update.form()"
-            class="space-y-6"
+            class="sb-card-light space-y-6 p-6 text-black"
             v-slot="{ errors, processing }"
         >
             <div class="grid gap-2">
@@ -80,12 +80,12 @@ const user = computed(() => page.props.auth.user);
             </div>
 
             <div v-if="mustVerifyEmail && !user.email_verified_at">
-                <p class="-mt-4 text-sm text-muted-foreground">
+                <p class="-mt-4 text-sm text-black/70">
                     Your email address is unverified.
                     <Link
                         :href="send()"
                         as="button"
-                        class="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
+                        class="text-black underline decoration-black/25 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current!"
                     >
                         Click here to resend the verification email.
                     </Link>

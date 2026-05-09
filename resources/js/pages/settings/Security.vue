@@ -66,7 +66,7 @@ onUnmounted(() => clearTwoFactorAuthData());
                 'password_confirmation',
                 'current_password',
             ]"
-            class="space-y-6"
+            class="sb-card-light space-y-6 p-6 text-black"
             v-slot="{ errors, processing }"
         >
             <div class="grid gap-2">
@@ -125,9 +125,9 @@ onUnmounted(() => clearTwoFactorAuthData());
 
         <div
             v-if="!twoFactorEnabled"
-            class="flex flex-col items-start justify-start space-y-4"
+            class="sb-card-light flex flex-col items-start justify-start space-y-4 p-6 text-black"
         >
-            <p class="text-sm text-muted-foreground">
+            <p class="text-sm text-black/70">
                 When you enable two-factor authentication, you will be prompted
                 for a secure pin during login. This pin can be retrieved from a
                 TOTP-supported application on your phone.
@@ -150,8 +150,8 @@ onUnmounted(() => clearTwoFactorAuthData());
             </div>
         </div>
 
-        <div v-else class="flex flex-col items-start justify-start space-y-4">
-            <p class="text-sm text-muted-foreground">
+        <div v-else class="sb-card-light flex flex-col items-start justify-start space-y-4 p-6 text-black">
+            <p class="text-sm text-black/70">
                 You will be prompted for a secure, random pin during login,
                 which you can retrieve from the TOTP-supported application on
                 your phone.
