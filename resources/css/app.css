@@ -106,10 +106,10 @@
     --destructive-foreground: #ffffff;
     --border: var(--sb-hairline-light);
     --input: var(--sb-hairline-light);
-    --ring: var(--sb-aloe-10);
+    --ring: #c1fbd4;
     --chart-1: #c1fbd4;
-    --chart-2: #d4f9e0;
-    --chart-3: #99b3ad;
+    --chart-2: #c1fbd4;
+    --chart-3: #d4f9e0;
     --chart-4: #71717a;
     --chart-5: #3f3f46;
     --sidebar-background: var(--sb-canvas-light);
@@ -119,7 +119,7 @@
     --sidebar-accent: var(--sb-canvas-cream);
     --sidebar-accent-foreground: #000000;
     --sidebar-border: var(--sb-hairline-light);
-    --sidebar-ring: var(--sb-aloe-10);
+    --sidebar-ring: #c1fbd4;
     --sidebar: var(--sb-canvas-light);
 }
 
@@ -142,10 +142,10 @@
     --destructive-foreground: #ffffff;
     --border: var(--sb-hairline-dark);
     --input: var(--sb-hairline-dark);
-    --ring: var(--sb-aloe-10);
+    --ring: #c1fbd4;
     --chart-1: #c1fbd4;
-    --chart-2: #d4f9e0;
-    --chart-3: #99b3ad;
+    --chart-2: #c1fbd4;
+    --chart-3: #d4f9e0;
     --chart-4: #a1a1aa;
     --chart-5: #d4d4d8;
     --sidebar-background: #020403;
@@ -155,7 +155,7 @@
     --sidebar-accent: #0a0f0d;
     --sidebar-accent-foreground: #ffffff;
     --sidebar-border: #15201d;
-    --sidebar-ring: var(--sb-aloe-10);
+    --sidebar-ring: #c1fbd4;
     --sidebar: #020403;
 }
 
