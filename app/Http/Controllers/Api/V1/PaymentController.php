@@ -9,6 +9,7 @@ use App\Http\Resources\PaymentResource;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Payment;
+use App\Models\PaymentWebhookEvent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -23,6 +24,7 @@ class PaymentController extends Controller
             'course_id' => ['required', 'integer', 'exists:courses,id'],
             'success_url' => ['sometimes', 'nullable', 'url'],
             'cancel_url' => ['sometimes', 'nullable', 'url'],
+            'idempotency_key' => ['sometimes', 'nullable', 'string', 'max:255'],
         ]);
 
         /** @var Course $course */
@@ -39,6 +41,27 @@ class PaymentController extends Controller
 
         abort_if($alreadyEnrolled, 422, 'You are already enrolled in this course.');
 
+        $idempotencyKey = $request->header('Idempotency-Key')
+            ?? $data['idempotency_key']
+            ?? null;
+
+        if ($idempotencyKey) {
+            $existing = Payment::query()
+                ->where('user_id', $user->id)
+                ->where('idempotency_key', $idempotencyKey)
+                ->first();
+
+            if ($existing) {
+                $successUrl = $data['success_url'] ?? config('app.url').'?payment=success';
+
+                return response()->json([
+                    'url' => $successUrl.'&session_id='.$existing->checkout_session_id,
+                    'session_id' => $existing->checkout_session_id,
+                    'idempotent_replay' => true,
+                ]);
+            }
+        }
+
         $sessionId = 'cs_'.Str::random(24);
         $intentId = 'pi_'.Str::random(24);
 
@@ -49,10 +72,11 @@ class PaymentController extends Controller
             'currency' => 'usd',
             'checkout_session_id' => $sessionId,
             'payment_intent_id' => $intentId,
+            'idempotency_key' => $idempotencyKey,
             'status' => PaymentStatus::Pending,
         ]);
 
-        $successUrl = $data['success_url'] ?? config('app.url').'/skillbro?payment=success';
+        $successUrl = $data['success_url'] ?? config('app.url').'?payment=success';
 
         return response()->json([
             'url' => $successUrl.'&session_id='.$sessionId,
@@ -63,6 +87,7 @@ class PaymentController extends Controller
     public function webhook(Request $request): JsonResponse
     {
         $payload = $request->validate([
+            'event_id' => ['sometimes', 'nullable', 'string'],
             'type' => ['sometimes', 'nullable', 'string'],
             'session_id' => ['sometimes', 'nullable', 'string'],
             'payment_intent_id' => ['sometimes', 'nullable', 'string'],
@@ -73,6 +98,17 @@ class PaymentController extends Controller
             'data.object.payment_intent' => ['sometimes', 'nullable', 'string'],
             'data.object.payment_status' => ['sometimes', 'nullable', 'string'],
         ]);
+
+        $eventId = $payload['event_id']
+            ?? sha1(json_encode($payload));
+
+        $alreadyProcessed = PaymentWebhookEvent::query()
+            ->where('event_id', $eventId)
+            ->exists();
+
+        if ($alreadyProcessed) {
+            return response()->json(['message' => 'Webhook already processed.']);
+        }
 
         $sessionId = $payload['session_id']
             ?? data_get($payload, 'data.object.id');
@@ -87,7 +123,20 @@ class PaymentController extends Controller
             ->when($intentId, fn ($query) => $query->orWhere('payment_intent_id', $intentId))
             ->first();
 
+        $event = PaymentWebhookEvent::query()->create([
+            'event_id' => $eventId,
+            'provider' => 'internal',
+            'payment_id' => $payment?->id,
+            'status' => 'received',
+            'payload' => $payload,
+        ]);
+
         if (! $payment) {
+            $event->update([
+                'status' => 'payment_not_found',
+                'processed_at' => now(),
+            ]);
+
             return response()->json(['message' => 'Payment not found.'], 404);
         }
 
@@ -95,7 +144,14 @@ class PaymentController extends Controller
             || in_array($eventType, ['checkout.completed', 'payment.completed'], true);
 
         if (! $isCompleted) {
-            $payment->update(['status' => PaymentStatus::Failed]);
+            if ($payment->status === PaymentStatus::Pending && $payment->canTransitionTo(PaymentStatus::Failed)) {
+                $payment->update(['status' => PaymentStatus::Failed]);
+            }
+
+            $event->update([
+                'status' => 'failed',
+                'processed_at' => now(),
+            ]);
 
             return response()->json(['message' => 'Webhook processed as failed.']);
         }
@@ -103,7 +159,11 @@ class PaymentController extends Controller
         DB::transaction(function () use ($payment): void {
             $payment->refresh();
 
-            if ($payment->status === PaymentStatus::Completed) {
+            if ($payment->status === PaymentStatus::Completed || $payment->status === PaymentStatus::Refunded) {
+                return;
+            }
+
+            if (! $payment->canTransitionTo(PaymentStatus::Completed)) {
                 return;
             }
 
@@ -119,6 +179,11 @@ class PaymentController extends Controller
                 ],
             );
         });
+
+        $event->update([
+            'status' => 'completed',
+            'processed_at' => now(),
+        ]);
 
         return response()->json(['message' => 'Webhook processed.']);
     }
