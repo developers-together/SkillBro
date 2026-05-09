@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[ObservedBy(EnrollmentObserver::class)]
 class Enrollment extends Model
@@ -52,6 +53,12 @@ class Enrollment extends Model
     public function quizAttempts(): HasMany
     {
         return $this->hasMany(QuizAttempt::class);
+    }
+
+    /** @return HasOne<CourseCertificate, $this> */
+    public function certificate(): HasOne
+    {
+        return $this->hasOne(CourseCertificate::class);
     }
 
     public function isCompleted(): bool
