@@ -5,15 +5,17 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('guests are redirected to the login page', function () {
-    $response = $this->get(route('dashboard'));
-    $response->assertRedirect(route('login'));
+test('guests can access the spa shell', function () {
+    $this->get('/')
+        ->assertOk()
+        ->assertSee('id="skillbro-app"', false);
 });
 
-test('authenticated users can visit the dashboard', function () {
+test('authenticated users can access app routes through spa shell', function () {
     $user = User::factory()->create();
-    $this->actingAs($user);
+    $this->actingAs($user, 'sanctum');
 
-    $response = $this->get(route('dashboard'));
-    $response->assertOk();
+    $this->get('/app/learn')
+        ->assertOk()
+        ->assertSee('id="skillbro-app"', false);
 });
