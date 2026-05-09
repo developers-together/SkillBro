@@ -1,16 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
 
-Route::inertia('/', 'Welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('home');
+Route::view('/', 'app')->name('home');
 
-Route::view('/skillbro', 'skillbro')->name('skillbro.frontend');
+Route::view('/auth/reset-password/{token}', 'app')->name('password.reset');
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
-});
-
-require __DIR__.'/settings.php';
+Route::view('/{any?}', 'app')
+    ->where('any', '^(?!api|storage).*$')
+    ->name('spa.fallback');
