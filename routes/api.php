@@ -3,9 +3,11 @@
 use App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\CertificateController;
 use App\Http\Controllers\Api\V1\CourseController;
 use App\Http\Controllers\Api\V1\EnrollmentController;
 use App\Http\Controllers\Api\V1\InstructorController;
+use App\Http\Controllers\Api\V1\InstructorRevenueController;
 use App\Http\Controllers\Api\V1\LectureController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\PaymentController;
@@ -46,6 +48,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         // Authenticated auth actions
         Route::post('auth/email/resend', [AuthController::class, 'resendVerificationEmail']);
+        Route::get('auth/me', [AuthController::class, 'me']);
 
         // Profile
         Route::get('user', [ProfileController::class, 'show']);
@@ -90,19 +93,24 @@ Route::prefix('v1')->group(function () {
         Route::post('lectures/{lecture}/quiz/attempt', [QuizController::class, 'attempt']);
         Route::get('lectures/{lecture}/quiz/attempts', [QuizController::class, 'attempts']);
 
-        // Enrollments
-        Route::get('enrollments', [EnrollmentController::class, 'index']);
-        Route::post('enrollments', [EnrollmentController::class, 'store']);
-        Route::get('enrollments/{enrollment}', [EnrollmentController::class, 'show']);
-        Route::post(
-            'enrollments/{enrollment}/lectures/{lecture}/complete',
-            [EnrollmentController::class, 'completeLecture']
-        );
+        // Enrollments + certificates (verified users only)
+        Route::middleware('verified')->group(function () {
+            Route::get('enrollments', [EnrollmentController::class, 'index']);
+            Route::post('enrollments', [EnrollmentController::class, 'store']);
+            Route::get('enrollments/{enrollment}', [EnrollmentController::class, 'show']);
+            Route::post(
+                'enrollments/{enrollment}/lectures/{lecture}/complete',
+                [EnrollmentController::class, 'completeLecture']
+            );
+            Route::get('enrollments/{enrollment}/certificate', [CertificateController::class, 'show']);
+        });
 
-        // Payments
-        Route::post('payments/checkout', [PaymentController::class, 'checkout']);
-        Route::get('payments', [PaymentController::class, 'index']);
-        Route::post('payments/{payment}/refund', [PaymentController::class, 'requestRefund']);
+        // Payments (verified users only)
+        Route::middleware('verified')->group(function () {
+            Route::post('payments/checkout', [PaymentController::class, 'checkout']);
+            Route::get('payments', [PaymentController::class, 'index']);
+            Route::post('payments/{payment}/refund', [PaymentController::class, 'requestRefund']);
+        });
 
         // Reviews
         Route::post('courses/{course}/reviews', [ReviewController::class, 'store']);
@@ -125,5 +133,7 @@ Route::prefix('v1')->group(function () {
             Route::get('payments', [Admin\PaymentController::class, 'index']);
             Route::put('payments/{payment}/refund', [Admin\PaymentController::class, 'decideRefund']);
         });
+
+        Route::get('instructors/revenue/me', InstructorRevenueController::class);
     });
 });
